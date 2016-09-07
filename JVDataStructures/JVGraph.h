@@ -12,6 +12,7 @@ typedef NS_ENUM(NSUInteger, JVGraphTraversalOrder) {
 - (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey value:(nullable NSValue *)value directed:(BOOL)isDirected NS_DESIGNATED_INITIALIZER;
 @property(nonnull, nonatomic, strong) id initialNodeKey;
 @property(nullable, nonatomic, strong) id terminalNodeKey;
+@property(nullable, nonatomic, strong) JVGraphConnection *nextConnection;
 @property(nullable, nonatomic, strong) NSValue *value;
 
 @end
