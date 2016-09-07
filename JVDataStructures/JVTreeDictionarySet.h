@@ -66,6 +66,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)objectForKeyIsIsolated:(KeyType)key;
 - (BOOL)relationExistsBetweenObjectForKey:(KeyType)key1 andObjectForKey:(KeyType)key2;
 - (void)removeAllObjects;
+- (void)removeObjectForKey:(id)key electChild:(BOOL)shouldElectChild;
 - (void)removeObjectsForKeys:(NSArray<KeyType> *)keysArray;
 - (void)setObject:(ObjectType)anObject forKey:(KeyType <NSCopying>)key1 andJoinWithObjectForKey:(nullable KeyType)key2;
 

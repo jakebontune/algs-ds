@@ -128,7 +128,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	if([self objectForKeyIsIsolated:key1]) {
 		isolatedKey = key1;
 		abundantKey = key2;
-	} else if([self objectForKeyIsIsolated:key2]) {
+	} else {
 		isolatedKey = key2;
 		abundantKey = key1;
 	}
@@ -319,120 +319,15 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 #pragma mark - Removing and Disjoining Objects
 
 - (void)removeObjectForKey:(id)key {
-	// NSMutableDictionary *targetDictionary = _mainDictionary[key];
-	// NSMutableDictionary *parentDictionary;
-	// __block id parentKey = [self parentKeyOfObjectForKey:key];
-	// if(parentKey == nil) return;
-
-	// // We are removing a whole component if it is the case that the
-	// // key is associated with a lone object
-	// if([self objectForKeyIsIsolated:key]) {
-	// 	--_componentCount;
-	// } else if([parentKey isEqual:key]) { // Target is a root object
-	// 	__block id heir;
-	// 	__block BOOL foundHeir = NO;
-	// 	[_mainDictionary enumerateKeysAndObjectsUsingBlock:^(id bKey, id obj, BOOL *stop) {
-	// 		parentKey = obj[kJV_TREE_SET_MEMBER_KEY_PARENT];
-	// 		if(foundHeir == NO) {
-	// 			// When we find an heir, we transfer the descendents
-	// 			// of the target to the heir 
-	// 			if([parentKey isEqual:key]) {
-	// 				foundHeir = YES;
-	// 				[self parentKeyOfObjectForKey:parentKey];
-	// 				// The heir's updated number of descendents is the
-	// 				// heir's number of descendents minus the target's
-	// 				// number of descendents and itself;
-	// 				[self setNumberOfDescendents:([self numberOfDescendentsOfObjectForKey:key].integerValue - [self numberOfDescendentsOfObjectForKey:parentKey].integerValue + 1) ofObjectForKey:parentKey];
-	// 				obj[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS] = @(((NSNumber *)targetDictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue - (((NSNumber *)obj[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue + 1));
-	// 				heir = bKey;
-	// 			}
-	// 		} else {
-	// 			if([obj[kJV_TREE_SET_MEMBER_KEY_PARENT] isEqual:key]) {
-	// 				obj[kJV_TREE_SET_MEMBER_KEY_PARENT] = heir;
-	// 			}
-	// 		}
-	// 	}];
-	// } else { // Target is neither isolated nor root
-	// 	[_mainDictionary enumerateKeysAndObjectsUsingBlock:^(id bKey, id obj, BOOL *stop) {
-	// 		if([obj[kJV_TREE_SET_MEMBER_KEY_PARENT] isEqual:key]) {
-	// 			obj[kJV_TREE_SET_MEMBER_KEY_PARENT] = targetDictionary[kJV_TREE_SET_MEMBER_KEY_PARENT];
-	// 		}
-	// 	}];
-
-	// 	parentDictionary = _mainDictionary[targetDictionary[kJV_TREE_SET_MEMBER_KEY_PARENT]];
-
-	// 	// Because this isn't a root node, we need to increase the
-	// 	// target's parent's number of descendents by the target's number
-	// 	// of descendents minus one to reflect removing the target
-	// 	parentDictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS] = @(((NSNumber *)parentDictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue + ((NSNumber *)targetDictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue - 1);
-	// }
-
-	// [_mainDictionary removeObjectForKey:key];
+	[self removeObjectForKey:key
+			 attemptPreserve:NO
+				  electChild:NO];
 }
 
-// TODO: move to private methods
-- (void)removeObjectForKey:(id)key
-		   attemptPreserve:(BOOL)shouldAttemptPreserve
-			 withSuccessor:(BOOL)shouldElectSuccessor {
-	if(_mainDictionary[key] == nil) return;
-	id heir, parentKey;
-	NSArray *keysArray;
-
-	if([self objectForKeyIsIsolated:key]) {
-		--_componentCount;
-	} else {
-		for(id childKey in _mainDictionary) {
-			parentKey = [self parentKeyOfObjectForKey:childKey];
-			if(![childKey isEqual:key] && [parentKey isEqual:key]) {
-				[keysArray addObject:childKey];
-			}
-		}
-
-		if(shouldAttemptPreserve) {
-			if(shouldElectSuccessor) {
-				if(!([keysArray count] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) { // has children
-					heir = [keysArray firstObject];
-					[self setNumberOfDescendents:([self numberOfDescendentsOfObjectForKey:key] - 1) ofObjectForKey:heir]; // inherit leaving node's children minus itself
-					for(NSUInteger i = 1; i < [keysArray count]; ++i) {
-						// siblings now refer to heir as family head
-						[self setParentKey:heir ofObjectForKey:[keysArray objectAtIndex:i]];
-					}
-					parentKey = [self parentKeyOfObjectForKey:key];
-					if([key isEqual:parentKey]) { // no grandparent so it is now root
-						[self setParentKey:heir ofObjectForKey:heir];
-					} else {
-						// has grandparent so it sttems from it and elders must be informed of departure
-						[self setParentKey:parentKey ofObjectForKey:heir];
-						[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
-					}
-				}
-			} else { // transfer children to predecessor
-				parentKey = [self parentKeyOfObjectForKey:key];
-				if([key isEqual:parentKey]) { // no predecessor
-					for(id childKey in keysArray) {
-						// children must become independent
-						[self setParentKey:childKey ofObjectForKey:childKey];
-						++_componentCount;
-					}
-				} else { // has predecessor
-					for(id childKey in keysArray) {
-						[self setParentKey:parentKey ofObjectForKey:childKey];
-					}
-					// inform elders of departure
-					[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
-				}
-			}
-		} else { // do not preserve family structure
-			for(id childKey in keysArray) {
-				// children must become independent
-				[self setParentKey:childKey ofObjectForKey:childKey];
-				++_componentCount;
-			}
-			// inform elders of its departure and that of its children
-			[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-([self numberOfDescendentsOfObjectForKey:key] + 1)];
-		}
-	}
-	[_mainDictionary removeObjectForKey:key];
+- (void)removeObjectForKey:(id)key electChild:(BOOL)shouldElectChild {
+	[self removeObjectForKey:key
+			 attemptPreserve:YES
+				  electChild:shouldElectChild];
 }
 
 - (void)removeAllObjects {
@@ -528,20 +423,6 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	++_componentCount;
 
 	return rootKey;
-
-	/*
-	** Naive approach left for historic purposes - to remove after initiating
-	** version control
-	*/
-	// if([self pathToRootContainsObjectForKey:key1 startFromObjectForKey:key2]) {
-	// 	[self rootKeyOfObjectForKey:key2 updateExaminedNodesWithAmount:-(((NSNumber *)dictionaryB[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue + 1)];
-	// 	dictionaryB[kJV_TREE_SET_MEMBER_KEY_PARENT] = key2;
-	// 	++_componentCount;
-	// } else if([self pathToRootContainsObjectForKey:key2 startFromObjectForKey:key1]) {
-	// 	[self rootKeyOfObjectForKey:key1 updateExaminedNodesWithAmount:-(((NSNumber *)dictionaryA[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue + 1)];
-	// 	dictionaryA[kJV_TREE_SET_MEMBER_KEY_PARENT] = key1;
-	// 	++_componentCount;
-	// }
 }
 
 - (NSArray *)disjoinObjectsForKeys:(NSArray *)keysArray1
@@ -866,6 +747,70 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	if([startKey isEqual:searchKey]) return YES;
 
 	return NO;
+}
+
+- (void)removeObjectForKey:(id)key
+		   attemptPreserve:(BOOL)shouldAttemptPreserve
+				electChild:(BOOL)shouldElectChild {
+	if(_mainDictionary[key] == nil) return;
+	id heir, parentKey;
+	NSArray *keysArray;
+
+	if([self objectForKeyIsIsolated:key]) {
+		--_componentCount;
+	} else {
+		for(id childKey in _mainDictionary) {
+			parentKey = [self parentKeyOfObjectForKey:childKey];
+			if(![childKey isEqual:key] && [parentKey isEqual:key]) {
+				[keysArray addObject:childKey];
+			}
+		}
+
+		if(shouldAttemptPreserve) {
+			if(shouldElectChild) {
+				if(!([keysArray count] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) { // has children
+					heir = [keysArray firstObject];
+					[self setNumberOfDescendents:([self numberOfDescendentsOfObjectForKey:key] - 1) ofObjectForKey:heir]; // inherit leaving node's children minus itself
+					for(NSUInteger i = 1; i < [keysArray count]; ++i) {
+						// siblings now refer to heir as family head
+						[self setParentKey:heir ofObjectForKey:[keysArray objectAtIndex:i]];
+					}
+					parentKey = [self parentKeyOfObjectForKey:key];
+					if([key isEqual:parentKey]) { // no grandparent so it is now root
+						[self setParentKey:heir ofObjectForKey:heir];
+					} else {
+						// has grandparent so it sttems from it and elders must be informed of departure
+						[self setParentKey:parentKey ofObjectForKey:heir];
+						[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
+					}
+				}
+			} else { // transfer children to predecessor
+				parentKey = [self parentKeyOfObjectForKey:key];
+				if([key isEqual:parentKey]) { // no predecessor
+					for(id childKey in keysArray) {
+						// children must become independent
+						[self setParentKey:childKey ofObjectForKey:childKey];
+						++_componentCount;
+					}
+				} else { // has predecessor
+					for(id childKey in keysArray) {
+						[self setParentKey:parentKey ofObjectForKey:childKey];
+					}
+					// inform elders of departure
+					[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
+				}
+			}
+		} else { // do not preserve family structure
+			for(id childKey in keysArray) {
+				// children must become independent
+				[self setParentKey:childKey ofObjectForKey:childKey];
+				++_componentCount;
+			}
+			// inform elders of its departure and that of its children
+			[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-([self numberOfDescendentsOfObjectForKey:key] + 1)];
+		}
+	}
+	[_mainDictionary removeObjectForKey:key];
 }
 
 - (id)rootKeyOfObjectForKey:(id)key {
