@@ -303,28 +303,28 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 - (void)removeObjectForKey:(id)key {
 	[self removeObjectForKey:key
-		   preserveStructure:NO
+		   preserveComponent:NO
 	   preserveWithSuccessor:NO
 	 preserveWithPredecessor:NO];
 }
 
-- (void)removeObjectForKey:(id)key preserveStructure:(BOOL)shouldPreserveStructure {
+- (void)removeObjectForKey:(id)key preserveComponent:(BOOL)shouldPreserveComponent {
 	[self removeObjectForKey:key
-		   preserveStructure:YES
+		   preserveComponent:YES
 	   preserveWithSuccessor:YES
 	 preserveWithPredecessor:YES];
 }
 
 - (void)removeObjectForKey:(id)key preserveWithSuccessor:(BOOL)shouldElectChild {
 	[self removeObjectForKey:key
-		   preserveStructure:YES
+		   preserveComponent:YES
 	   preserveWithSuccessor:YES
 	 preserveWithPredecessor:NO];
 }
 
 - (void)removeObjectForKey:(id)key preserveWithPredecessor:(BOOL)shouldElectParent {
 	[self removeObjectForKey:key
-		   preserveStructure:YES
+		   preserveComponent:YES
 	   preserveWithSuccessor:NO
 	 preserveWithPredecessor:YES];
 }
@@ -743,7 +743,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 }
 
 - (void)removeObjectForKey:(id)key
-		 preserveStructure:(BOOL)shouldPreserveStructure
+		 preserveComponent:(BOOL)shouldPreserveComponent
 	 preserveWithSuccessor:(BOOL)shouldElectChild
    preserveWithPredecessor:(BOOL)shouldElectParent {
 	if(_mainDictionary[key] == nil) return;
@@ -762,7 +762,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 			}
 		}
 
-		if(shouldPreserveStructure) {
+		if(shouldPreserveComponent) {
 			if(shouldElectParent) {
 				parentKey = [self parentKeyOfObjectForKey:key];
 				if([key isEqual:parentKey] && !shouldElectChild) { // no predecessor and no heir should be chosen
@@ -809,7 +809,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 			[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-([self numberOfDescendantsOfObjectForKey:key] + 1)];
 		}
 	}
-	
+
 	[_mainDictionary removeObjectForKey:key];
 }
 
