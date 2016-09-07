@@ -20,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_DESIGNATED_INITIALIZER;
 - (void)joinObjectForKey:(nullable KeyType)key1
 		 andObjectForKey:(nullable KeyType)key2
-		 	   joinRoots:(BOOL)shouldJoinAtRoots
+		 	   joinRoots:(BOOL)shouldJoinRoots
 		disjoinInitially:(BOOL)shouldDisjoinInitially
 	  uprootObjectForKey:(nullable KeyType)keyToUproot;
 - (NSEnumerator<KeyType> *)keyEnumerator;
@@ -66,7 +66,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)objectForKeyIsIsolated:(KeyType)key;
 - (BOOL)relationExistsBetweenObjectForKey:(KeyType)key1 andObjectForKey:(KeyType)key2;
 - (void)removeAllObjects;
-- (void)removeObjectForKey:(id)key electChild:(BOOL)shouldElectChild;
+- (void)removeObjectForKey:(id)key preserveStructure:(BOOL)shouldPreserveStructure;
+- (void)removeObjectForKey:(id)key preserveWithSuccessor:(BOOL)shouldElectChild;
+- (void)removeObjectForKey:(id)key preserveWithPredecessor:(BOOL)shouldElectParent;
 - (void)removeObjectsForKeys:(NSArray<KeyType> *)keysArray;
 - (void)setObject:(ObjectType)anObject forKey:(KeyType <NSCopying>)key1 andJoinWithObjectForKey:(nullable KeyType)key2;
 

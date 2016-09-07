@@ -27,30 +27,6 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	BOOL _partiallyCompressPaths;
 }
 
-#pragma mark - Key-Value Observing
-
-- (void)registerForKeyValueObserving {
-	[_mainDictionary addObserver:self
-					  forKeyPath:kJV_TREE_SET_KVO_DICTIONARY_COUNT
-						 options:NSKeyValueObservingOptionNew
-						 context:NULL];
-}
-
-- (void)unregisterForKeyValueObserving {
-	[_mainDictionary removeObserver:self
-						 forKeyPath:kJV_TREE_SET_KVO_DICTIONARY_COUNT];
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath
-					  ofObject:(id)object
-					    change:(NSDictionary *)change
-					   context:(void *)context {
-	if([keyPath isEqual:kJV_TREE_SET_KVO_DICTIONARY_COUNT]) {
-		_averagePathLengthShouldUpdate = YES;
-		_longestPathLengthShouldUpdate = YES;
-	}
-}
-
 #pragma mark - Creating a Tree Dicitonary Set
 
 + (instancetype)treeDictionarySet {
@@ -70,6 +46,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 - (instancetype)init {
 	if(self = [super init]) {
 		_mainDictionary = [[NSMutableDictionary alloc] init];
+		[self registerForKeyValueObserving];
 	}
 
 	return self;
@@ -176,7 +153,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 				// Disjoin the node with lesser descendents from its parent and 
 				// append to the other.
-				if([self numberOfDescendentsOfObjectForKey:key1] <= [self numberOfDescendentsOfObjectForKey:key2]) {
+				if([self numberOfDescendantsOfObjectForKey:key1] <= [self numberOfDescendantsOfObjectForKey:key2]) {
 					evictedKey = key1;
 					undisturbedKey = key2;
 				} else {
@@ -197,7 +174,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 				   uprootObjectForKey:nil];
 				if(evictedKey != nil) { // a disjoin took place
 					[self setParentKey:undisturbedKey ofObjectForKey:evictedKey];
-					[self rootKeyOfObjectForKey:evictedKey updateExaminedNodesWithAmount:([self numberOfDescendentsOfObjectForKey:evictedKey] + 1)];
+					[self rootKeyOfObjectForKey:evictedKey updateExaminedNodesWithAmount:([self numberOfDescendantsOfObjectForKey:evictedKey] + 1)];
 					--_componentCount;
 				}
 			}
@@ -206,7 +183,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 		if(shouldJoinRoots) {
 
 			// TODO: use better metrics for balanced tree
-			if([self numberOfDescendentsOfObjectForKey:key1RootKey] <= [self numberOfDescendentsOfObjectForKey:key2RootKey]) {
+			if([self numberOfDescendantsOfObjectForKey:key1RootKey] <= [self numberOfDescendantsOfObjectForKey:key2RootKey]) {
 				evictedKey = key1RootKey;
 				undisturbedKey = key2RootKey;
 			} else {
@@ -226,7 +203,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 			} else if([key1RootKey isEqual:key1] && [key2RootKey isEqual:key2]) {
 
 				// TODO: use better metrics for balanced tree
-				if([self numberOfDescendentsOfObjectForKey:key1] <= [self numberOfDescendentsOfObjectForKey:key2]) {
+				if([self numberOfDescendantsOfObjectForKey:key1] <= [self numberOfDescendantsOfObjectForKey:key2]) {
 					evictedKey = key1;
 					undisturbedKey = key2;
 				} else {
@@ -260,7 +237,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 		}
 
 		[self setParentKey:undisturbedKey ofObjectForKey:evictedKey];
-		[self rootKeyOfObjectForKey:evictedKey updateExaminedNodesWithAmount:([self numberOfDescendentsOfObjectForKey:evictedKey] + 1)];
+		[self rootKeyOfObjectForKey:evictedKey updateExaminedNodesWithAmount:([self numberOfDescendantsOfObjectForKey:evictedKey] + 1)];
 		--_componentCount;
 	}
 }
@@ -318,22 +295,38 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 #pragma mark - Removing and Disjoining Objects
 
-- (void)removeObjectForKey:(id)key {
-	[self removeObjectForKey:key
-			 attemptPreserve:NO
-				  electChild:NO];
-}
-
-- (void)removeObjectForKey:(id)key electChild:(BOOL)shouldElectChild {
-	[self removeObjectForKey:key
-			 attemptPreserve:YES
-				  electChild:shouldElectChild];
-}
-
 - (void)removeAllObjects {
 	for(id key in _mainDictionary) {
 		[self removeObjectForKey:key];
 	}
+}
+
+- (void)removeObjectForKey:(id)key {
+	[self removeObjectForKey:key
+		   preserveStructure:NO
+	   preserveWithSuccessor:NO
+	 preserveWithPredecessor:NO];
+}
+
+- (void)removeObjectForKey:(id)key preserveStructure:(BOOL)shouldPreserveStructure {
+	[self removeObjectForKey:key
+		   preserveStructure:YES
+	   preserveWithSuccessor:YES
+	 preserveWithPredecessor:YES];
+}
+
+- (void)removeObjectForKey:(id)key preserveWithSuccessor:(BOOL)shouldElectChild {
+	[self removeObjectForKey:key
+		   preserveStructure:YES
+	   preserveWithSuccessor:YES
+	 preserveWithPredecessor:NO];
+}
+
+- (void)removeObjectForKey:(id)key preserveWithPredecessor:(BOOL)shouldElectParent {
+	[self removeObjectForKey:key
+		   preserveStructure:YES
+	   preserveWithSuccessor:NO
+	 preserveWithPredecessor:YES];
 }
 
 - (void)removeObjectsForKeys:(NSArray *)keysArray {
@@ -416,7 +409,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	}
 
 	// update the number of descendents of the uproot key's ancestors before disjoining
-	[self rootKeyOfObjectForKey:rootKey updateExaminedNodesWithAmount:-([self numberOfDescendentsOfObjectForKey:rootKey] + 1)];
+	[self rootKeyOfObjectForKey:rootKey updateExaminedNodesWithAmount:-([self numberOfDescendantsOfObjectForKey:rootKey] + 1)];
 	// set it free
 	[self setParentKey:rootKey ofObjectForKey:rootKey];
 
@@ -487,7 +480,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 		NSUInteger totalPathLength;
 		NSUInteger leavesCount;
 		for(id key in _mainDictionary) {
-			if([self numberOfDescendentsOfObjectForKey:key] == 0) {
+			if([self numberOfDescendantsOfObjectForKey:key] == 0) {
 				[self rootKeyOfObjectForKey:key pathLength:pathLength];
 				totalPathLength += *pathLength;
 				++leavesCount;
@@ -525,7 +518,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 		NSUInteger oldPathLength;
 		NSUInteger *pathLength;
 		for(id key in _mainDictionary) {
-			if([self numberOfDescendentsOfObjectForKey:key] == 0) {
+			if([self numberOfDescendantsOfObjectForKey:key] == 0) {
 				oldPathLength = *pathLength;
 				[self rootKeyOfObjectForKey:key pathLength:pathLength];
 				_longestPathLength = MAX(oldPathLength, *pathLength);
@@ -544,7 +537,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 - (BOOL)objectForKeyIsIsolated:(id)key {
 	NSAssert(_mainDictionary[key] != nil, @"No object for key:%@ found in set.", [key description]);
-	if(([self numberOfDescendentsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN) && [self objectForKeyIsComponentRoot:key]) {
+	if(([self numberOfDescendantsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN) && [self objectForKeyIsComponentRoot:key]) {
 		return YES;
 	}
 
@@ -586,7 +579,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	// We gather all non-isolated nodes first to avoid altering the main
 	// dictionary while enumerating through it.
 	for(id key in _mainDictionary) {
-		if(![self objectForKeyIsIsolated:key] && ([self numberOfDescendentsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) {
+		if(![self objectForKeyIsIsolated:key] && ([self numberOfDescendantsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) {
 			[keysArray addObject:key];
 		}
 	}
@@ -602,7 +595,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	// We gather all non-isolated nodes first to avoid altering the main
 	// dictionary while enumerating through it.
 	for(id key in _mainDictionary) {
-		if(![self objectForKeyIsIsolated:key] && ([self numberOfDescendentsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) {
+		if(![self objectForKeyIsIsolated:key] && ([self numberOfDescendantsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) {
 			[keysArray addObject:key];
 		}
 	}
@@ -696,7 +689,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	// the number of descendents to remove from subsequent
 	// nodes increases by one each step.
 	while(![key isEqual:parentKey]) {
-		[self setNumberOfDescendents:[self numberOfDescendentsOfObjectForKey:key] + missingChildren ofObjectForKey:key];
+		[self setNumberOfDescendants:[self numberOfDescendantsOfObjectForKey:key] + missingChildren ofObjectForKey:key];
 		++missingChildren;
 		[self setParentKey:rootKey ofObjectForKey:key];
 		key = parentKey;
@@ -719,7 +712,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	// from the parents (excluding the root) of subsequent nodes,
 	// the number of descendents of the current node plus one (itself).
 	while(![parentKey isEqual:rootKey]) {
-		[self setNumberOfDescendents:-([self numberOfDescendentsOfObjectForKey:key] + 1) ofObjectForKey:parentKey];
+		[self setNumberOfDescendants:-([self numberOfDescendantsOfObjectForKey:key] + 1) ofObjectForKey:parentKey];
 		[self setParentKey:grandParentKey ofObjectForKey:key];
 		key = parentKey;
 		parentKey = grandParentKey;
@@ -750,11 +743,14 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 }
 
 - (void)removeObjectForKey:(id)key
-		   attemptPreserve:(BOOL)shouldAttemptPreserve
-				electChild:(BOOL)shouldElectChild {
+		 preserveStructure:(BOOL)shouldPreserveStructure
+	 preserveWithSuccessor:(BOOL)shouldElectChild
+   preserveWithPredecessor:(BOOL)shouldElectParent {
 	if(_mainDictionary[key] == nil) return;
+
 	id heir, parentKey;
 	NSArray *keysArray;
+	BOOL foundPredecessor;
 
 	if([self objectForKeyIsIsolated:key]) {
 		--_componentCount;
@@ -766,11 +762,29 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 			}
 		}
 
-		if(shouldAttemptPreserve) {
-			if(shouldElectChild) {
+		if(shouldPreserveStructure) {
+			if(shouldElectParent) {
+				parentKey = [self parentKeyOfObjectForKey:key];
+				if([key isEqual:parentKey] && !shouldElectChild) { // no predecessor and no heir should be chosen
+					for(id childKey in keysArray) {
+						// children must become independent
+						[self setParentKey:childKey ofObjectForKey:childKey];
+						++_componentCount;
+					}
+				} else if(![key isEqual:parentKey]) { // has predecessor
+					for(id childKey in keysArray) {
+						[self setParentKey:parentKey ofObjectForKey:childKey];
+					}
+					// inform elders of departure
+					[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
+					foundPredecessor = YES;
+				}
+			}
+
+			if(shouldElectChild && !foundPredecessor) { // find an heir
 				if(!([keysArray count] == kJV_TREE_SET_ZERO_NUM_CHILDREN)) { // has children
 					heir = [keysArray firstObject];
-					[self setNumberOfDescendents:([self numberOfDescendentsOfObjectForKey:key] - 1) ofObjectForKey:heir]; // inherit leaving node's children minus itself
+					[self setNumberOfDescendants:([self numberOfDescendantsOfObjectForKey:key] - 1) ofObjectForKey:heir]; // inherit leaving node's children minus itself
 					for(NSUInteger i = 1; i < [keysArray count]; ++i) {
 						// siblings now refer to heir as family head
 						[self setParentKey:heir ofObjectForKey:[keysArray objectAtIndex:i]];
@@ -779,25 +793,10 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 					if([key isEqual:parentKey]) { // no grandparent so it is now root
 						[self setParentKey:heir ofObjectForKey:heir];
 					} else {
-						// has grandparent so it sttems from it and elders must be informed of departure
+						// has grandparent so it stems from it and elders must be informed of departure
 						[self setParentKey:parentKey ofObjectForKey:heir];
 						[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
 					}
-				}
-			} else { // transfer children to predecessor
-				parentKey = [self parentKeyOfObjectForKey:key];
-				if([key isEqual:parentKey]) { // no predecessor
-					for(id childKey in keysArray) {
-						// children must become independent
-						[self setParentKey:childKey ofObjectForKey:childKey];
-						++_componentCount;
-					}
-				} else { // has predecessor
-					for(id childKey in keysArray) {
-						[self setParentKey:parentKey ofObjectForKey:childKey];
-					}
-					// inform elders of departure
-					[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-1];
 				}
 			}
 		} else { // do not preserve family structure
@@ -807,9 +806,10 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 				++_componentCount;
 			}
 			// inform elders of its departure and that of its children
-			[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-([self numberOfDescendentsOfObjectForKey:key] + 1)];
+			[self rootKeyOfObjectForKey:key updateExaminedNodesWithAmount:-([self numberOfDescendantsOfObjectForKey:key] + 1)];
 		}
 	}
+	
 	[_mainDictionary removeObjectForKey:key];
 }
 
@@ -837,45 +837,15 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	if(parentKey == nil) return nil;
 
 	if(_completelyCompressPaths) {
-		// [// Set the parent of all the nodes we passed by to the
-		// 		// root. Up to the direct child of the root,
-		// 		// the number of descendents to remove from subsequent
-		// 		// nodes increases by one.
-		// 		while(![compressionKey isEqual:dictionary[kJV_TREE_SET_MEMBER_KEY_PARENT]]) {
-		// 			dictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS] = @(((NSNumber *)dictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue - missingChildren);
-		// 			++missingChildren;
-		// 			compressionKey = dictionary[kJV_TREE_SET_MEMBER_KEY_PARENT];
-		// 			dictionary[kJV_TREE_SET_MEMBER_KEY_PARENT] = rootKey;
-		// 			dictionary = _mainDictionary[compressionKey];
-		// 		}
-		// 		// No need to update root's number of descendents as it remains the
-		// 		// topmost ancestor]
 		[self compressPathsCompletelyWithKey:key];
 	} else if(_partiallyCompressPaths) {
-		// // Set the parent of all nodes we passed to it's grandparent.
-		// // As we go up to the direct child of the root, we subtract
-		// // from the parents (excluding the root) of subsequent nodes,
-		// // the number of descendents of the current node plus one
-		// // (itself).
-		// NSMutableDictionary *parentDictionary;
-		// id parentKey;
-		// while(![compressionKey isEqual:dictionary[kJV_TREE_SET_MEMBER_KEY_PARENT]]) {
-		// 	parentKey = dictionary[kJV_TREE_SET_MEMBER_KEY_PARENT];
-		// 	parentDictionary = _mainDictionary[parentKey];
-		// 	if(![parentKey isEqual:rootKey]) {
-		// 		parentDictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS] = @(-(((NSNumber *)dictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue + 1));
-		// 	}
-		// 	dictionary[kJV_TREE_SET_MEMBER_KEY_PARENT] = parentDictionary[kJV_TREE_SET_MEMBER_KEY_PARENT];
-		// 	compressionKey = parentKey;
-		// 	dictionary = _mainDictionary[compressionKey];
-		// }
 		[self compressPathsPartiallyWithKey:key];
 	}
 
 	// move to top most ancestor of given key
 	while(![rootKey isEqual:parentKey]) {
 		rootKey = parentKey;
-		[self setNumberOfDescendents:([self numberOfDescendentsOfObjectForKey:parentKey] + amount) ofObjectForKey:parentKey];
+		[self setNumberOfDescendants:([self numberOfDescendantsOfObjectForKey:parentKey] + amount) ofObjectForKey:parentKey];
 		++pLength;
 	}
 
@@ -886,7 +856,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 #pragma mark - Private Node Properties Accessor Methods
 
-- (NSUInteger)numberOfDescendentsOfObjectForKey:(id)key {
+- (NSUInteger)numberOfDescendantsOfObjectForKey:(id)key {
 	NSDictionary *dictionary = _mainDictionary[key];
 	NSAssert(dictionary != nil, @"No found object for key %@", [key description]);
 	return ((NSNumber *)dictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue;
@@ -896,12 +866,36 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	return _mainDictionary[key][kJV_TREE_SET_MEMBER_KEY_PARENT];
 }
 
-- (void)setNumberOfDescendents:(NSUInteger)numDescendents ofObjectForKey:(id)key {
+- (void)setNumberOfDescendants:(NSUInteger)numDescendents ofObjectForKey:(id)key {
 	_mainDictionary[key][kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS] = @(numDescendents);
 }
 
 - (void)setParentKey:(nonnull id)parentKey ofObjectForKey:(id)key {
 	_mainDictionary[key][kJV_TREE_SET_MEMBER_KEY_PARENT] = parentKey;
+}
+
+#pragma mark - Key-Value Observing
+
+- (void)registerForKeyValueObserving {
+	[_mainDictionary addObserver:self
+					  forKeyPath:kJV_TREE_SET_KVO_DICTIONARY_COUNT
+						 options:NSKeyValueObservingOptionNew
+						 context:NULL];
+}
+
+- (void)unregisterForKeyValueObserving {
+	[_mainDictionary removeObserver:self
+						 forKeyPath:kJV_TREE_SET_KVO_DICTIONARY_COUNT];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+					  ofObject:(id)object
+					    change:(NSDictionary *)change
+					   context:(void *)context {
+	if([keyPath isEqual:kJV_TREE_SET_KVO_DICTIONARY_COUNT]) {
+		_averagePathLengthShouldUpdate = YES;
+		_longestPathLengthShouldUpdate = YES;
+	}
 }
 
 @end
