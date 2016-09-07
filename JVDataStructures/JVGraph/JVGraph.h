@@ -5,42 +5,6 @@ typedef NS_ENUM(NSUInteger, JVGraphTraversalOrder) {
 	JVGraphDepthFirstTraversalOrder
 };
 
-@interface JVGraphConnection : NSObject
-
-@property(getter=isDirected) BOOL directed;
-- (nonnull instancetype)init NS_DESIGNATED_INITIALIZER;
-- (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey value:(nullable NSValue *)value directed:(BOOL)isDirected NS_DESIGNATED_INITIALIZER;
-@property(nonnull, nonatomic, strong) id initialNodeKey;
-@property(nullable, nonatomic, strong) id terminalNodeKey;
-@property(nullable, nonatomic, strong) JVGraphConnection *nextConnection;
-@property(nullable, nonatomic, strong) NSValue *value;
-
-@end
-
-@interface JVGraphConnection (JVExtendedGraphConnection)
-
-// as you need
-
-@end
-
-@interface JVGraphConnection (JVGraphConnectionCreation)
-
-+ (nonnull instancetype)connection;
-+ (nonnull instancetype)connectionWithInitialNodeKey:(nonnull id)initialNodeKey;
-+ (nonnull instancetype)connectionWithInitialNodeKey:(nonnull id)initialNodeKey directed:(BOOL)isDirected;
-+ (nonnull instancetype)connectionWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey;
-+ (nonnull instancetype)connectionWithInitialNodeKey:(nonnull id)initialNodeKey value:(nullable NSValue *)value directed:(BOOL)isDirected;
-+ (nonnull instancetype)connectionWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nonnull id)terminalNodeKey value:(nullable NSValue *)value;
-+ (nonnull instancetype)connectionWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey value:(nullable NSValue *)value directed:(BOOL)isDirected;
-
-- (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey;
-- (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey directed:(BOOL)isDirected;
-- (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey;
-- (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey value:(nullable NSValue *)value directed:(BOOL)isDirected;
-- (nonnull instancetype)initWithInitialNodeKey:(nonnull id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey value:(nullable NSValue *)value;
-
-@end
-
 NS_ASSUME_NONNULL_BEGIN
 
 @interface JVGraph<KeyType, ObjectType> : NSObject
