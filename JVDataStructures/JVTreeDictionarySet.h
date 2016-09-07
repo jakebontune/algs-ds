@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setObject:(ObjectType)anObject forKey:(KeyType <NSCopying>)key;
 
 #pragma mark - TESTING
-- (NSUInteger)numberOfDescendentsOfObjectForKey:(KeyType)key;
+- (NSUInteger)numberOfDescendantsOfObjectForKey:(KeyType)key;
 - (nullable KeyType)parentKeyOfObjectForKey:(nullable KeyType)key;
 - (nullable KeyType)rootKeyOfObjectForKey:(nullable KeyType)key;
 
@@ -50,7 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
 				 		 parallely:(BOOL)enumerateParallely
 					 disjoinAtRoot:(BOOL)shouldDisjoinAtRoot
 	   				uprootSequence:(nullable NSArray<KeyType> *)uprootSequenceArray;
-- (void)enumerateKeysAndObjectsUsingBlock:((^)(KeyType key, ObjectType obj, BOOL isComponentRoot, BOOL *stop))block;
+- (void)enumerateKeysAndObjectsUsingBlock:(void (^)(KeyType key, ObjectType obj, BOOL isComponentRoot, BOOL *stop))block;
 - (void)joinObjectForKey:(KeyType)key1 andObjectForKey:(KeyType)key2;
 - (void)joinObjectsForKeys:(NSArray<KeyType> *)keysArray1
 		andObjectsForKeys:(NSArray<KeyType> *)keysArray2

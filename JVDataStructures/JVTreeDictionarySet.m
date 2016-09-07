@@ -99,6 +99,8 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 }
 
 - (void)joinObjectForKey:(id)key1 andObjectForKey:(id)key2 {
+	if((key1 == nil) || (key2 == nil)) return;
+	
 	id isolatedKey;
 	id abundantKey;
 
@@ -536,7 +538,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 }
 
 - (BOOL)objectForKeyIsIsolated:(id)key {
-	NSAssert(_mainDictionary[key] != nil, @"No object for key:%@ found in set.", [key description]);
+	// NSAssert(_mainDictionary[key] != nil, @"No object for key %@ found in set.", [key description]);
 	if(([self numberOfDescendantsOfObjectForKey:key] == kJV_TREE_SET_ZERO_NUM_CHILDREN) && [self objectForKeyIsComponentRoot:key]) {
 		return YES;
 	}
@@ -548,7 +550,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	id key1RootKey = [self rootKeyOfObjectForKey:key1];
 	id key2RootKey = [self rootKeyOfObjectForKey:key2];
 
-	NSAssert((key1RootKey != nil) && (key2RootKey != nil), @"Keys must be non-nil to deduce relationship.");
+	// NSAssert((key1RootKey != nil) && (key2RootKey != nil), @"Keys must be non-nil to deduce relationship.");
 	
 	if([key1RootKey isEqual:key2RootKey]) return YES;
 
@@ -657,7 +659,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	return enumerator;
 }
 
-- (void)enumerateKeysAndObjectsUsingBlock:((^)(id key, id obj, BOOL isComponentRoot, BOOL *stop))block {
+- (void)enumerateKeysAndObjectsUsingBlock:(void (^)(id key, id obj, BOOL isComponentRoot, BOOL *stop))block {
 	BOOL stop = NO, isComponentRoot = NO;
 	id key, obj;
 	NSEnumerator *keyEnumerator = [_mainDictionary keyEnumerator];
@@ -721,7 +723,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 }
 
 - (BOOL)objectForKeyIsComponentRoot:(id)key {
-	NSAssert(_mainDictionary[key] != nil, @"No object for key:%@ found in set.", [key description]);
+	// NSAssert(_mainDictionary[key] != nil, @"No object for key:%@ found in set.", [key description]);
 	return [[self parentKeyOfObjectForKey:key] isEqual:key];
 }
 
@@ -749,7 +751,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	if(_mainDictionary[key] == nil) return;
 
 	id heir, parentKey;
-	NSArray *keysArray;
+	NSMutableArray *keysArray;
 	BOOL foundPredecessor;
 
 	if([self objectForKeyIsIsolated:key]) {
@@ -858,7 +860,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 - (NSUInteger)numberOfDescendantsOfObjectForKey:(id)key {
 	NSDictionary *dictionary = _mainDictionary[key];
-	NSAssert(dictionary != nil, @"No found object for key %@", [key description]);
+	// NSAssert(dictionary != nil, @"No found object for key %@", [key description]);
 	return ((NSNumber *)dictionary[kJV_TREE_SET_MEMBER_KEY_NUM_DESCENDENTS]).integerValue;
 }
 

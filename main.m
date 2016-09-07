@@ -284,7 +284,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"----Adding Objects----");
@@ -299,7 +299,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"----Removing Objects----");
@@ -308,7 +308,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"----Joining Objects----");
@@ -317,7 +317,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"----Finding the Root of Objects----");
@@ -345,7 +345,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"Overall count: %lu, Component count: %lu", [treeDictionarySet count], [treeDictionarySet componentCount]);
@@ -356,7 +356,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"Overall count: %lu, Component count: %lu", [treeDictionarySet count], [treeDictionarySet componentCount]);
@@ -372,7 +372,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"Overall count: %lu, Component count: %lu", [treeDictionarySet count], [treeDictionarySet componentCount]);
@@ -382,7 +382,7 @@ int main(int argc, const char * argv[]) {
 
         NSLog(@"----TDS Enumeration----");
         [treeDictionarySet enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSString *obj, BOOL isComponentRoot, BOOL *stop) {
-            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendentsOfObjectForKey:key]);
+            NSLog(@"Key: %lu, \tValue: %@, \tisComponentRoot: %d, \tRoot: %@, \tparent: %lu, \tnumDescendents: %lu", key.integerValue, obj, isComponentRoot, [treeDictionarySet rootKeyOfObjectForKey:key], ((NSNumber *)[treeDictionarySet parentKeyOfObjectForKey:key]).integerValue, [treeDictionarySet numberOfDescendantsOfObjectForKey:key]);
         }];
 
         NSLog(@"Overall count: %lu, Component count: %lu", [treeDictionarySet count], [treeDictionarySet componentCount]);
