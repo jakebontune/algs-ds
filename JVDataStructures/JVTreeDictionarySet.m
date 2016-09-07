@@ -100,7 +100,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 
 - (void)joinObjectForKey:(id)key1 andObjectForKey:(id)key2 {
 	if((key1 == nil) || (key2 == nil)) return;
-	
+
 	id isolatedKey;
 	id abundantKey;
 
@@ -255,6 +255,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 			  uprootSequence:nil];
 }
 
+// TODO: non-parallel is too naive
 - (void)joinObjectsForKeys:(NSArray *)keysArray1
 		 andObjectsForKeys:(NSArray *)keysArray2
 		 		 parallely:(BOOL)enumerateParallely
@@ -430,6 +431,7 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 						uprootSequence:nil];
 }
 
+// TODO: non-parallel is too naive
 - (NSArray *)disjoinObjectsForKeys:(NSArray *)keysArray1
 				 andObjectsForKeys:(NSArray *)keysArray2
 				 		 parallely:(BOOL)enumerateParallely

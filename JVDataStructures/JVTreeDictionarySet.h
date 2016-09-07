@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 // This class is graph-default.
 @interface JVTreeDictionarySet<KeyType, ObjectType> : NSObject
 
-@property(readonly) NSUInteger count;
+@property(nonatomic, readonly) NSUInteger count;
 - (nullable KeyType)disjoinObjectForKey:(nullable KeyType)key1
 		  				  andObjectForKey:(nullable KeyType)key2
 							disjoinAtRoot:(BOOL)shouldDisjoinAtRoot
@@ -38,8 +38,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface JVTreeDictionarySet<KeyType, ObjectType> (JVExtendedTreeDictionarySet)
 
 - (void)addEntriesFromDictionary:(NSDictionary<KeyType, ObjectType> *)dictionary;
-@property(readonly) NSUInteger averagePathLength;
-@property(readonly) NSUInteger componentCount;
+@property(nonatomic, readonly) NSUInteger averagePathLength;
+@property(nonatomic, readonly) NSUInteger componentCount;
 - (NSSet<KeyType> *)componentSetContainingObjectForKey:(KeyType)key;
 - (nullable KeyType)disjoinObjectForKey:(nullable KeyType)key1 andObjectForKey:(nullable KeyType)key2;
 - (NSArray *)disjoinObjectsForKeys:(NSArray<KeyType> *)keysArray1
@@ -61,7 +61,7 @@ NS_ASSUME_NONNULL_BEGIN
 		 	     joinRoots:(BOOL)shouldJoinRoots
 		  disjoinInitially:(BOOL)shouldDisjoinInitially
 	    	uprootSequence:(nullable NSArray<KeyType> *)uprootSequenceArray;
-@property(readonly) NSUInteger longestPathLength;
+@property(nonatomic, readonly) NSUInteger longestPathLength;
 - (NSEnumerator<ObjectType> *)objectEnumerator;
 - (BOOL)objectForKeyIsIsolated:(KeyType)key;
 - (BOOL)relationExistsBetweenObjectForKey:(KeyType)key1 andObjectForKey:(KeyType)key2;
@@ -84,11 +84,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface JVTreeDictionarySet<KeyType, ObjectType> (JVTreeDictionarySetPathCompression)
 
-@property(getter=shouldCompletelyCompressPaths) BOOL completelyCompressPaths;
+@property(nonatomic, assign, getter=shouldCompletelyCompressPaths) BOOL completelyCompressPaths;
 - (void)compressPathsCompletely;
 - (void)compressPathsPartially;
 - (void)compressPathsUsingDictionary:(NSDictionary<KeyType, NSArray<KeyType> *> *)dictionary;
-@property(getter=shouldPartiallyCompressPaths) BOOL partiallyCompressPaths;
+@property(nonatomic, assign, getter=shouldPartiallyCompressPaths) BOOL partiallyCompressPaths;
 
 @end
 
