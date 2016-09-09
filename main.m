@@ -17,6 +17,7 @@
 #import "JVDataStructures/JVMutableDictionary.h"
 #import "JVDataStructures/JVBinarySearchTree.h"
 #import "JVDataStructures/JVTreeDictionarySet.h"
+#import "JVDataStructures/JVGraph/JVGraphConnectionStore.h"
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
@@ -416,6 +417,9 @@ int main(int argc, const char * argv[]) {
         // }];
 
         // NSLog(@"Overall count: %lu, Component count: %lu", [treeDictionarySet count], [treeDictionarySet componentCount]);
+
+        NSLog(@"***Graph Connection Store***");
+        JVGraphConnectionStore *store = [[JVGraphConnectionStore alloc] init];
     }
 
     return 0;

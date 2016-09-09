@@ -217,7 +217,7 @@ static const NSUInteger kMaxLoadFactorDenominator = 10;
 - (void)setObject:(id)anObject forKey:(id)key {
 	[_fixedDicitonary setObject:anObject forKey:key];
 
-	// multiply the count:size ratio by yht denominator to get a value
+	// multiply the count:size ratio by the denominator to get a value
 	// greater than zero for comparision
 	if(kMaxLoadFactorDenominator * [_fixedDicitonary count] / _capacity > kMaxLoadFactorNumerator) {
 		_capacity *= 2;

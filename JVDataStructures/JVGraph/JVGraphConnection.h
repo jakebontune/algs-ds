@@ -9,14 +9,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithInitialNodeKey:(id)initialNodeKey terminalNodeKey:(nullable id)terminalNodeKey value:(nullable NSValue *)value directed:(BOOL)isDirected NS_DESIGNATED_INITIALIZER;
 @property(nonatomic, strong) id initialNodeKey;
 @property(nullable, nonatomic, strong) id terminalNodeKey;
-@property(nullable, nonatomic, strong) JVGraphConnection *nextConnection;
 @property(nullable, nonatomic, strong) NSValue *value;
 
 @end
 
 @interface JVGraphConnection (JVExtendedGraphConnection)
 
-// as you need
+// get creative
 
 @end
 

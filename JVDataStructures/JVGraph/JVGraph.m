@@ -3,9 +3,8 @@
 #endif
 
 #import "JVGraph.h"
-#import "JVMutableSinglyLinkedList.h"
+#import "../JVMutableSinglyLinkedList.h"
 #import "../JVTreeDictionarySet.h"
-#import "JVGraphConnection.h"
 #import "JVGraphConnectionStore.h"
 
 // single node dictionary keys
@@ -23,16 +22,6 @@ static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE = @"CONNECT
 
 // default values
 static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
-
-typedef NS_OPTIONS(NSUInteger, JVGraphConnectionOrientationOptions) {
-    JVGraphConnectionOrientationDirected = 5 << 0, // 0000 0101
-    JVGraphConnectionOrientationUndirected = 5 << 1, // 0000 1010
-};
-
-typedef NS_OPTIONS(NSUInteger, JVGraphVertexOrientationOptions) {
-    JVGraphVertexOrientationInitial = 3 << 0, // 0000 0011
-    JVGraphVertexOrientationTerminal = 3 << 2, // 0000 1100
-};
 
 @implementation JVGraph {
     NSMutableDictionary<id <NSCopying>, NSMutableDictionary *> *_nodeInfoDictionary;
