@@ -23,13 +23,6 @@
 
 #pragma mark - Creating a Graph D2LA Connection Store
 #pragma mark - Initializing a Graph D2LA Connection Store
-- (instancetype)init {
-	if(self = [super init]) {
-		NSLog(@"D2LA");
-	}
-
-	return self;
-}
 #pragma mark - Adding to a Graph DLA Connection Store
 - (void)addNode:(id)node1
  adjacentToNode:(id)node2

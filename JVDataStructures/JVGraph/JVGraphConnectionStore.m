@@ -7,7 +7,7 @@
 
 static NSString * const class_JVGraphAALAConnectionStore = @"JVGraphAALAConnectionStore";
 static NSString * const class_JVGraphDLAConnectionStore = @"JVGraphDLAConnectionStore";
-static NSString * const class_JVGraphA2ALAConnectionStore = @"JVGraphA2ALAConnectionStore";
+static NSString * const class_JVGraphAA2LAConnectionStore = @"JVGraphAA2LAConnectionStore";
 static NSString * const class_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnectionStore";
 
 @implementation JVGraphConnectionStore {
