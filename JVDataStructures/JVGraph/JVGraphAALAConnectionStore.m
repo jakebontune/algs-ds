@@ -350,7 +350,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     }];
 
     if(indexSet.count == 2) {
-    	BOOL foundTarget;
+    	BOOL foundMatch;
     	NSUInteger incidenceCount;
 
     	if([[_nodeArray objectAtIndex:indexSet.firstIndex] isEqual:node2]) {
@@ -371,7 +371,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     	allAdjacentNodes = nodeAdjacencyList.objectEnumerator.allObjects;
     	for(NSArray *propertiesArray in allAdjacentNodes) {
     		if([propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] isEqual:node1]) {
-    			if([propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] isEqualToNumber:@(connectionOrientation)] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE] isEqualToValue:value] && !foundTarget) {
+    			if([propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] isEqualToNumber:@(connectionOrientation)] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE] isEqualToValue:value] && (foundMatch == NO)) {
     				[nodeAdjacencyList removeObject:propertiesArray];
 
 	    			if(directed) {
@@ -389,7 +389,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 	    				--_undirectedConnectionCount;
 	    			}
 
-	    			foundTarget = YES;
+	    			foundMatch = YES;
     			}
 
     			++incidenceCount;
@@ -398,14 +398,19 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 
     	// Being careful here. It is possible that we found a node matching
     	// the node to remove in name but not in the other parameters.
-    	// If we did not find a match, then it doesn't matter what the incidence
-    	// count is. If we found a match, then we must make sure it is the
-    	// only adjacent node with that name in the list before we can
+    	// The incidence count is incremented whenever we find a node matching
+    	// the name given - connections to the same node, however, with
+    	// different connection properties.
+    	// If we did not find an exact match, then it doesn't matter what the
+    	// incidence count is. If we found a match, then we must make sure it is
+    	// the only adjacent node with that name in the list before we can
     	// reduce the _distinctIncidenceCount;
-    	if(foundTarget && (incidenceCount == 1)) --_distinctIncidenceCount;
+    	if(foundMatch && (incidenceCount == 1)) --_distinctIncidenceCount;
     } else {
     	return;
     }
+
+    if(foundMatch = NO) return;
 
     // set up for node1
     nodeAdjacencyList = [_adjacencyArray objectAtIndex:node1Index];
