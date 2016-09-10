@@ -15,7 +15,13 @@
 
 @end
 
-@implementation JVGraphAA2LAConnectionStore
+@implementation JVGraphAA2LAConnectionStore {
+	NSUInteger _connectionCount;
+	NSUInteger _directedConnectionCount;
+	NSUInteger _inDegreeCount;
+	NSUInteger _undirectedConnectionCount;
+	NSUInteger _outDegreeCount;
+}
 
 #pragma mark - Creating a Graph AA2LA Connection Store
 #pragma mark - Initializing a Graph AA2LA Connection Store

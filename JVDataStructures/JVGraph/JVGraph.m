@@ -5,7 +5,7 @@
 #import "JVGraph.h"
 #import "../JVMutableSinglyLinkedList.h"
 #import "../JVTreeDictionarySet.h"
-#import "JVGraphConnectionStore.h"
+#import "JVGraphConnectionStoreProtocol.h"
 
 // single node dictionary keys
 static NSUInteger const kJV_GRAPH_NODE_INFO_DICTIONARY_CAPACITY = 3;
@@ -113,7 +113,7 @@ static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
             if([tempDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] isEqual:key]) {
                 [adjacentNodeList removeObject:tempDictionary];
                 adjacentNodeInfoDictionary = [_nodeInfoDictionary objectForKey:adjacentNodeKey];
-                if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphVertexOrientationInitial) {
+                if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphNodeOrientationInitial) {
                     adjacentNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue - 1);
 
                 } else {
@@ -182,7 +182,7 @@ static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
 
     adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] = toKey;
     adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] = value;
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION] = @(JVGraphVertexOrientationInitial);
+    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION] = @(JVGraphNodeOrientationInitial);
     adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION] = @(connectionOrientation);
     [adjacencyList addObject:[adjacentNodeDictionary copy]];
 
@@ -194,7 +194,7 @@ static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
 
     adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] = fromKey;
     adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] = value;
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION] = @(JVGraphVertexOrientationTerminal);
+    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION] = @(JVGraphNodeOrientationTerminal);
     [adjacencyList addObject:adjacentNodeDictionary];
 
     fromNodeInfo[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)fromNodeInfo[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue + 1);
@@ -231,7 +231,7 @@ static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
             && ([adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] isEqualToValue:value])
             && (((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION]).integerValue == connectionOrientation)) {
             [adjacencyListA removeObject:adjacentNodeDictionary];
-            if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphVertexOrientationInitial) {
+            if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphNodeOrientationInitial) {
                 nodeInfoB[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)nodeInfoB[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue - 1);
             } else {
                 nodeInfoB[kJV_GRAPH_NODE_KEY_INDEGREE] = @(((NSNumber *)nodeInfoB[kJV_GRAPH_NODE_KEY_INDEGREE]).integerValue - 1);
@@ -249,7 +249,7 @@ static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
             && ([adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] isEqualToValue:value])
             && (((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION]).integerValue == connectionOrientation)) {
             [adjacencyListB removeObject:adjacentNodeDictionary];
-            if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphVertexOrientationInitial) {
+            if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphNodeOrientationInitial) {
                 nodeInfoA[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)nodeInfoA[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue - 1);
             } else {
                 nodeInfoA[kJV_GRAPH_NODE_KEY_INDEGREE] = @(((NSNumber *)nodeInfoA[kJV_GRAPH_NODE_KEY_INDEGREE]).integerValue - 1);

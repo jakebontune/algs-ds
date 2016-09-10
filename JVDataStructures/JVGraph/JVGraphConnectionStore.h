@@ -7,16 +7,6 @@
 
 @interface JVGraphConnectionStore<NodeType> : NSObject
 
-typedef NS_OPTIONS(NSUInteger, JVGraphConnectionOrientationOptions) {
-    JVGraphConnectionOrientationDirected = 5 << 0, // 0000 0101
-    JVGraphConnectionOrientationUndirected = 5 << 1, // 0000 1010
-};
-
-typedef NS_OPTIONS(NSUInteger, JVGraphVertexOrientationOptions) {
-    JVGraphVertexOrientationInitial = 3 << 0, // 0000 0011
-    JVGraphVertexOrientationTerminal = 3 << 2, // 0000 1100
-};
-
 - (void)addNode:(NodeType)node1
  adjacentToNode:(NodeType)node2
  	   directed:(BOOL)directed

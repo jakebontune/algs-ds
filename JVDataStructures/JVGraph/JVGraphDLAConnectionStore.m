@@ -14,7 +14,13 @@
 
 @end
 
-@implementation JVGraphDLAConnectionStore
+@implementation JVGraphDLAConnectionStore {
+	NSUInteger _connectionCount;
+	NSUInteger _directedConnectionCount;
+	NSUInteger _inDegreeCount;
+	NSUInteger _undirectedConnectionCount;
+	NSUInteger _outDegreeCount;
+}
 
 #pragma mark - Creating a Graph DLA Connection Store
 #pragma mark - Initializing a Graph DLA Connection Store

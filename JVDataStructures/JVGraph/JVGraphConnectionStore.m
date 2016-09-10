@@ -5,10 +5,23 @@
 #import "JVGraphConnectionStore.h"
 #import "JVGraphConnectionStoreProtocol.h"
 
-static NSString * const class_JVGraphAALAConnectionStore = @"JVGraphAALAConnectionStore";
-static NSString * const class_JVGraphDLAConnectionStore = @"JVGraphDLAConnectionStore";
-static NSString * const class_JVGraphAA2LAConnectionStore = @"JVGraphAA2LAConnectionStore";
-static NSString * const class_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnectionStore";
+static NSString * const kCLASS_JVGraphAALAConnectionStore = @"JVGraphAALAConnectionStore";
+static NSString * const kCLASS_JVGraphDLAConnectionStore = @"JVGraphDLAConnectionStore";
+static NSString * const kCLASS_JVGraphAA2LAConnectionStore = @"JVGraphAA2LAConnectionStore";
+static NSString * const kCLASS_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnectionStore";
+
+/* Store Representation change thresholds
+** Threshold is based on benchmark tests from
+** https://www.objc.io/issues/7-foundation/collections/
+** Representation is chosen based on following formulas:
+** |V| denotes the number of nodes
+** |E| denotes the number of connections
+** AALA  - |V| < THRESHOLD && |E| < (2/3)|V|^2
+** AA2LA - |V| < THRESHOLD && |E| >= (2/3)|V|^2
+** DLA 	 - |V| >= THRESHOLD && |E| < (2/3)|V|^2
+** D2LA  - |V| >= THRESHOLD && |E| >= (2/3)|V|^2
+*/
+static NSUInteger const kSTORE_NUM_NODES_THRESHOLD = 500000; // 500,000
 
 @implementation JVGraphConnectionStore {
 @private
@@ -21,8 +34,8 @@ static NSString * const class_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnecti
 
 - (instancetype)init {
 	if(self = [super init]) {
-		Class JVGraphD2LAConnectionStore = NSClassFromString(class_JVGraphD2LAConnectionStore);
-		_store = [[JVGraphD2LAConnectionStore alloc] init];
+		Class JVGraphAALAConnectionStore = NSClassFromString(kCLASS_JVGraphAALAConnectionStore);
+		_store = [[JVGraphAALAConnectionStore alloc] init];
 	}
 
 	return self;
