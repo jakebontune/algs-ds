@@ -28,6 +28,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 	NSUInteger _connectionCount;
 	NSMutableArray *_degreeArray;
 	NSUInteger _directedConnectionCount;
+	NSUInteger _distinctIncidenceCount;
 	NSMutableArray *_inDegreeArray;
 	NSMutableArray *_nodeArray;
 	NSMutableArray *_outDegreeArray;
@@ -142,6 +143,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 	    [_adjacencyArray addObject:[connectionList copy]];
 	    [connectionList removeFirstObject];
 
+	    // set up for node1
 	    nodeOrientation = JVGraphNodeOrientationTerminal;
 	    propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] = node2;
 	    propertiesArray[kAALA_CONNECTION_PROPERTIES_NODE_ORIENTATION] = @(nodeOrientation);
@@ -163,6 +165,8 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 	    	[_inDegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
 	    	[_outDegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
 	    }
+
+	    ++_distinctIncidenceCount;
     } else if((indexSet.count == 1) && ![node1 isEqual:node2]) { // Only one of them exists.
     	NSUInteger node1Index;
     	NSUInteger node2Index;
@@ -188,7 +192,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     		[self incrementDegreeAtNodeIndex:node1Index];
     		connectionList = [_adjacencyArray objectAtIndex:node1Index];
 
-    		nodeOrientation = JVGraphNodeOrientationInitial;
+    		nodeOrientation = JVGraphNodeOrientationTerminal;
     		propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] = node2;
     		propertiesArray[kAALA_CONNECTION_PROPERTIES_NODE_ORIENTATION] = @(nodeOrientation);
 
@@ -222,10 +226,11 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     		if(directed) {
     			[self incrementOutDegreeAtNodeIndex:node2Index];
 
-		    	[_inDegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
-		    	[_outDegreeArray addObject:@(1)];
+		    	[_inDegreeArray addObject:@(1)];
+		    	[_outDegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
 		    }
     	}
+    	++_distinctIncidenceCount;
 	} else { // both exist
     	NSUInteger node1Index;
     	NSUInteger node2Index;
@@ -258,6 +263,16 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 			[self incrementOutDegreeAtNodeIndex:node2Index];
 			[self incrementInDegreeAtNodeIndex:node1Index];
 	    }
+
+	    BOOL isDistinctIncidence = YES;
+	    for(NSArray *propertiesArray in [_adjacencyArray objectAtIndex:node1Index]) {
+	    	if([propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] isEqual:node2]) {
+	    		isDistinctIncidence = NO;
+	    		break;
+	    	}
+	    }
+
+	    if(isDistinctIncidence) ++_distinctIncidenceCount;
     }
 }
 
@@ -273,9 +288,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     	__block JVMutableSinglyLinkedList *adjacentNodeList;
     	__block NSArray *allAdjacentNodes;
     	NSUInteger nodeIndex = indexSet.firstIndex;
-
-    	// Remove the node from the node array
-    	[_nodeArray removeObjectAtIndex:nodeIndex];
+    	NSUInteger incidenceCount;
 
     	// Find other nodes that are adjacent to this node and
     	// remove delete all connections that involve this node.
@@ -283,9 +296,12 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     		if(idx != nodeIndex) { // Avoid self loops
     			adjacentNodeList = (JVMutableSinglyLinkedList *)list;
     			allAdjacentNodes = adjacentNodeList.objectEnumerator.allObjects;
+    			incidenceCount = 0;
 		    	for(NSArray *propertiesArray in allAdjacentNodes) {
 		    		if([propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] isEqual:node]) {
 		    			[adjacentNodeList removeObject:propertiesArray];
+		    			++incidenceCount;
+
 		    			if([propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] isEqualToNumber:@(JVGraphConnectionOrientationDirected)]) {
 		    				[self decrementDegreeAtNodeIndex:idx];
 		    				if([propertiesArray[kAALA_CONNECTION_PROPERTIES_NODE_ORIENTATION] isEqualToNumber:@(JVGraphNodeOrientationInitial)]) {
@@ -299,10 +315,13 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 		    			}
 		    		}
 		    	}
+
+		    	if(incidenceCount == 1) --_distinctIncidenceCount;
     		}
     		return NO;
 	    }];
 
+    	[_nodeArray removeObjectAtIndex:nodeIndex];
 	    [_adjacencyArray removeObjectAtIndex:nodeIndex];
 	    [_degreeArray removeObjectAtIndex:nodeIndex];
 	    [_inDegreeArray removeObjectAtIndex:nodeIndex];
@@ -331,6 +350,9 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
     }];
 
     if(indexSet.count == 2) {
+    	BOOL foundTarget;
+    	NSUInteger incidenceCount;
+
     	if([[_nodeArray objectAtIndex:indexSet.firstIndex] isEqual:node2]) {
     		node2Index = indexSet.firstIndex;
     		node1Index = indexSet.lastIndex;
@@ -348,24 +370,39 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 	    nodeAdjacencyList = [_adjacencyArray objectAtIndex:node2Index];
     	allAdjacentNodes = nodeAdjacencyList.objectEnumerator.allObjects;
     	for(NSArray *propertiesArray in allAdjacentNodes) {
-    		if([propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] isEqual:node1] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] isEqualToNumber:@(connectionOrientation)] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE] isEqualToValue:value]) {
-    			[nodeAdjacencyList removeObject:propertiesArray];
-    			if(directed) {
-    				[self decrementDegreeAtNodeIndex:node2Index];
-    				[self decrementDegreeAtNodeIndex:node1Index];
-    				if([propertiesArray[kAALA_CONNECTION_PROPERTIES_NODE_ORIENTATION] isEqualToNumber:@(JVGraphNodeOrientationInitial)]) {
-    					[self decrementOutDegreeAtNodeIndex:node2Index];
-    					[self decrementInDegreeAtNodeIndex:node1Index];
-    				} else {
-    					[self decrementInDegreeAtNodeIndex:node2Index];
-    					[self decrementOutDegreeAtNodeIndex:node1Index];
-    				}
-    				--_directedConnectionCount;
-    			} else {
-    				--_undirectedConnectionCount;
+    		if([propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] isEqual:node1]) {
+    			if([propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] isEqualToNumber:@(connectionOrientation)] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE] isEqualToValue:value] && !foundTarget) {
+    				[nodeAdjacencyList removeObject:propertiesArray];
+
+	    			if(directed) {
+	    				[self decrementDegreeAtNodeIndex:node2Index];
+	    				[self decrementDegreeAtNodeIndex:node1Index];
+	    				if([propertiesArray[kAALA_CONNECTION_PROPERTIES_NODE_ORIENTATION] isEqualToNumber:@(JVGraphNodeOrientationInitial)]) {
+	    					[self decrementOutDegreeAtNodeIndex:node2Index];
+	    					[self decrementInDegreeAtNodeIndex:node1Index];
+	    				} else {
+	    					[self decrementInDegreeAtNodeIndex:node2Index];
+	    					[self decrementOutDegreeAtNodeIndex:node1Index];
+	    				}
+	    				--_directedConnectionCount;
+	    			} else {
+	    				--_undirectedConnectionCount;
+	    			}
+
+	    			foundTarget = YES;
     			}
+
+    			++incidenceCount;
     		}
     	}
+
+    	// Being careful here. It is possible that we found a node matching
+    	// the node to remove in name but not in the other parameters.
+    	// If we did not find a match, then it doesn't matter what the incidence
+    	// count is. If we found a match, then we must make sure it is the
+    	// only adjacent node with that name in the list before we can
+    	// reduce the _distinctIncidenceCount;
+    	if(foundTarget && (incidenceCount == 1)) --_distinctIncidenceCount;
     } else {
     	return;
     }
@@ -376,6 +413,7 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 	for(NSArray *propertiesArray in allAdjacentNodes) {
 		if([propertiesArray[kAALA_CONNECTION_PROPERTIES_ADJACENT_NODE] isEqual:node2] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] isEqualToNumber:@(connectionOrientation)] && [propertiesArray[kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE] isEqualToValue:value]) {
 			[nodeAdjacencyList removeObject:propertiesArray];
+			break;
 		}
 	}
 }
@@ -431,6 +469,10 @@ static int const kAALA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 3;
 
 - (NSUInteger)directedConnectionCount {
 	return _directedConnectionCount;
+}
+
+- (NSUInteger)distinctIncidenceCount {
+	return _distinctIncidenceCount;
 }
 
 - (NSNumber *)inDegreeOfNode:(id)node {

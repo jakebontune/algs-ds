@@ -16,11 +16,15 @@
 @end
 
 @implementation JVGraphAA2LAConnectionStore {
+	NSMutableArray<JVMutableSinglyLinkedList<NSMutableArray *> *> *_adjacencyArray;
+	NSMutableArray *_nodeMatrixArray;
 	NSUInteger _connectionCount;
+	NSMutableArray *_degreeArray;
 	NSUInteger _directedConnectionCount;
-	NSUInteger _inDegreeCount;
+	NSMutableArray *_inDegreeArray;
+	NSMutableArray *_nodeArray;
+	NSMutableArray *_outDegreeArray;
 	NSUInteger _undirectedConnectionCount;
-	NSUInteger _outDegreeCount;
 }
 
 #pragma mark - Creating a Graph AA2LA Connection Store

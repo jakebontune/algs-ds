@@ -20,7 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)connectionExistsFromNode:(id)node1 toNode:(id)node2 value:(NSValue *)value;
 @property(readonly) NSUInteger connectionCount;
 - (NSNumber *)degreeOfNode:(id)node;
-@property(readonly) NSUInteger directedConnectionsCount;
+@property(readonly) NSUInteger directedConnectionCount;
+@property(readonly) NSUInteger distinctIncidenceCount;
 - (NSNumber *)inDegreeofNode:(id)node;
 - (instancetype)initWithNode:(id)node1 adjacentToNode:(id)node2;
 - (instancetype)initWithNode:(id)node1 adjacentToNode:(id)node2 directed:(BOOL)directed;
@@ -49,7 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
                adjacentToNode:(id)node2
                      directed:(BOOL)directed
                         value:(NSValue *)value;
-@property(readonly) NSUInteger undirectedConnectionsCount;
+@property(readonly) NSUInteger undirectedConnectionCount;
 
 NS_ASSUME_NONNULL_END
 
