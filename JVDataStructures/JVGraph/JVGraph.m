@@ -6,6 +6,7 @@
 #import "../JVMutableSinglyLinkedList.h"
 #import "../JVTreeDictionarySet.h"
 #import "JVGraphConnectionStoreProtocol.h"
+#import "JVGraphConstants.h"
 
 // single node dictionary keys
 static NSUInteger const kJV_GRAPH_NODE_INFO_DICTIONARY_CAPACITY = 3;
@@ -20,8 +21,6 @@ static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION = @"C
 static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION = @"VERTEX_ORIENTATION";
 static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE = @"CONNECTION_VALUE";
 
-// default values
-static int const kJV_GRAPH_DEFAULT_CONNECTION_VALUE = 1;
 
 @implementation JVGraph {
     NSMutableDictionary<id <NSCopying>, NSMutableDictionary *> *_nodeInfoDictionary;
