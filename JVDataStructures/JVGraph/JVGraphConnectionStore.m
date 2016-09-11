@@ -80,9 +80,9 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
               adjacentToNode:(id)node2
                     directed:(BOOL)directed
                        value:(NSValue *)value {
-    if(self = [self init]) {
+  if(self = [self init]) {
 	    [_store setNode:node1 adjacentToNode:node2 directed:directed value:value];
-	}
+  }
 
 	return self;
 }
