@@ -166,8 +166,8 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
 	return [_store directedConnectionCount];
 }
 
-- (NSUInteger)distinctIncidenceCount {
-	return [_store distinctIncidenceCount];
+- (NSUInteger)uniqueIncidenceCount {
+	return [_store uniqueIncidenceCount];
 }
 
 - (NSNumber *)indegreeOfNode:(id)node {

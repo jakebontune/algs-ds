@@ -14,7 +14,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSUInteger nodeCount;
 - (NSNumber *)degreeOfNode:(id)node;
 @property(nonatomic, readonly) NSUInteger directedConnectionCount;
-@property(nonatomic, readonly) NSUInteger distinctIncidenceCount;
 - (NSNumber *)indegreeOfNode:(id)node;
 - (instancetype)initWithNode:(id)node1
               adjacentToNode:(id)node2
@@ -31,6 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
        directed:(BOOL)directed
           value:(NSValue *)value;
 @property(nonatomic, readonly) NSUInteger undirectedConnectionCount;
+@property(nonatomic, readonly) NSUInteger uniqueIncidenceCount;
 
 NS_ASSUME_NONNULL_END
 

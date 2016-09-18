@@ -27,10 +27,9 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 @end
 
 @implementation JVGraphAA2LAConnectionStore {
-	NSUInteger _connectionCount;
 	NSMutableArray *_degreeArray;
 	NSUInteger _directedConnectionCount;
-	NSUInteger _distinctIncidenceCount;
+	NSUInteger _uniqueIncidenceCount;
 	NSMutableArray *_indegreeArray;
 	NSMutableArray *_nodeArray;
 	NSMutableArray *_nodeMatrixArray;
@@ -148,17 +147,17 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     	[_nodeMatrixArray addObject:adjacencyArray];
 
     	[_nodeArray addObject:node2];
-    	[_degreeArray addObject:@(2)]; // self loops contribute two degrees
+    	[_degreeArray addObject:@(kJV_GRAPH_DEFAULT_SELF_LOOP_DEGREE)]; // self loops contribute two degrees
 
     	if(directed) {
-	    	[_indegreeArray addObject:@(1)];
-	    	[_outdegreeArray addObject:@(1)];
+	    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
+	    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 	    } else {
-	    	[_indegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
-	    	[_outdegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
+	    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
+	    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
 	    }
 
-	    ++_distinctIncidenceCount;
+	    ++_uniqueIncidenceCount;
     } else if(indexSet.count == 0) { // insert new nodes
 	    // Order matters! The rule is to deal with the initial node
 	    // first.
@@ -186,7 +185,7 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     	[_nodeMatrixArray addObject:[NSMutableArray arrayWithArray:adjacencyArray]];
 
 	    [_nodeArray addObject:node2];
-	    [_degreeArray addObject:@(1)];
+	    [_degreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 
 	    // set up for node1
 	    [connectionList removeFirstObject];
@@ -201,25 +200,25 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     	[_nodeMatrixArray addObject:[NSMutableArray arrayWithArray:adjacencyArray]];
 
 	    [_nodeArray addObject:node1];
-	    [_degreeArray addObject:@(1)];
+	    [_degreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 
 	    if(directed) {
 	    	// node 2 contributes outdegree
-	    	[_indegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
-	    	[_outdegreeArray addObject:@(1)];
+	    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
+	    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 
 	    	// node 1 contributes indegree
-	    	[_indegreeArray addObject:@(1)];
-	    	[_outdegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
+	    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
+	    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
 	    } else {
-	    	[_indegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
-	    	[_outdegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
+	    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
+	    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
 
-	    	[_indegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
-	    	[_outdegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
+	    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
+	    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
 	    }
 
-	    ++_distinctIncidenceCount;
+	    ++_uniqueIncidenceCount;
     } else if((indexSet.count == 1) && ![node1 isEqual:node2]) { // Only one of them exists.
     	adjacencyArray = [NSMutableArray array];
     	connectionList = [JVMutableSinglyLinkedList list];
@@ -252,7 +251,7 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 	    	adjacencyArray[node1Index] = [connectionList copy];
 
     		[_nodeArray addObject:node2];
-    		[_degreeArray addObject:@(1)];
+    		[_degreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 
     		// set up for node1
     		// Get the list at position (node1Index, node2Index)
@@ -267,8 +266,8 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 		    [self incrementDegreeAtNodeIndex:node1Index];
 
 		    if(directed) {
-		    	[_indegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
-		    	[_outdegreeArray addObject:@(1)];
+		    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
+		    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 
 		    	[self incrementIndegreeAtNodeIndex:node1Index];
 		    }
@@ -292,17 +291,17 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 	    	[adjacencyArray addObject:[connectionList copy]];
 
 	    	[_nodeArray addObject:node1];
-    		[_degreeArray addObject:@(1)];
+    		[_degreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
 
     		if(directed) {
     			[self incrementOutdegreeAtNodeIndex:node2Index];
 
-		    	[_indegreeArray addObject:@(1)];
-		    	[_outdegreeArray addObject:@(kJV_GRAPH_ZERO_DEFAULT_VALUE)];
+		    	[_indegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ONE)];
+		    	[_outdegreeArray addObject:@(kJV_GRAPH_DEFAULT_VALUE_ZERO)];
 		    }
     	}
 
-    	++_distinctIncidenceCount;
+    	++_uniqueIncidenceCount;
 	} else { // both exist
     	NSUInteger node1Index;
     	NSUInteger node2Index;
@@ -323,9 +322,9 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     	connectionList = [adjacencyArray objectAtIndex:node2Index];
 
     	nodeOrientation = JVGraphNodeOrientationTerminal;
-	    [propertyArray insertObject:@(nodeOrientation) atIndex:kAA2LA_CONNECTION_PROPERTIES_ROW_NODE_ORIENTATION];
-	    [propertyArray insertObject:@(connectionOrientation) atIndex:kAA2LA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION];
-	    [propertyArray insertObject:value atIndex:kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE];
+        propertyArray[kAA2LA_CONNECTION_PROPERTIES_ROW_NODE_ORIENTATION] = @(nodeOrientation);
+        propertyArray[kAA2LA_CONNECTION_PROPERTIES_CONNECTION_ORIENTATION] = @(connectionOrientation);
+        propertyArray[kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE] = value;
 
 	    [connectionList addObject:[NSArray arrayWithArray:propertyArray]];
 
@@ -337,7 +336,7 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 			[self incrementIndegreeAtNodeIndex:node1Index];
 	    }
 
-	    if(connectionList.count == 1) ++_distinctIncidenceCount;
+	    if(connectionList.count == 1) ++_uniqueIncidenceCount;
     }
 }
 
@@ -350,6 +349,7 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     }];
 
     if(indexSet.firstIndex != NSNotFound) {
+        NSUInteger idx;
     	JVMutableSinglyLinkedList *list;
 
     	// Get each node's adjacency array. Get the list in each array
@@ -359,13 +359,13 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     	// from the current search node's adjacency array.
     	for(NSMutableArray *adjacencyArray in _nodeMatrixArray) {
     		list = [adjacencyArray objectAtIndex:indexSet.firstIndex];
-    		NSUInteger idx, indegreeCount, outdegreeCount, degreeCount;
+    		NSUInteger indegreeCount, outdegreeCount;
 
     		// We know the row is determined by idx and the 'column' is the
     		// departing node's index. So we simply need to check if the list
     		// at that position is occupied - if it is, we can safely say we
-    		// are looking at a distinct connection.
-    		if(list.count != 0) --_distinctIncidenceCount;
+    		// are looking at a unique connection.
+    		if(list.count != 0) --_uniqueIncidenceCount;
 
     		// The row node is the node at idx.
     		for(NSArray *propertyArray in list.objectEnumerator.allObjects) {
@@ -375,12 +375,13 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
     				} else {
     					++indegreeCount;
     				}
+                    --_directedConnectionCount;
     			} else {
-    				++degreeCount;
+    				--_undirectedConnectionCount;
     			}
     		}
 
-    		[self updateDegreeAtNodeIndex:idx withAmount:-degreeCount];
+    		[self updateDegreeAtNodeIndex:idx withAmount:-list.count];
     		[self updateIndegreeAtNodeIndex:idx withAmount:-indegreeCount];
     		[self updateOutdegreeAtNodeIndex:idx withAmount:-outdegreeCount];
 
@@ -425,7 +426,7 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
                     --_undirectedConnectionCount;
                 }
 
-    			if(connectionList.count == 0) --_distinctIncidenceCount;
+    			if(connectionList.count == 0) --_uniqueIncidenceCount;
     			break;
     		}
     	}
@@ -462,7 +463,7 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 	    			--_undirectedConnectionCount;
 	    		}
 
-    			if(connectionList.count == 0) --_distinctIncidenceCount;
+    			if(connectionList.count == 0) --_uniqueIncidenceCount;
     		}
     	}
     } else {
@@ -544,8 +545,8 @@ static int const kAA2LA_CONNECTION_PROPERTIES_CONNECTION_VALUE = 2;
 	return _directedConnectionCount;
 }
 
-- (NSUInteger)distinctIncidenceCount {
-	return _distinctIncidenceCount;
+- (NSUInteger)uniqueIncidenceCount {
+	return _uniqueIncidenceCount;
 }
 
 - (NSNumber *)indegreeOfNode:(id)node {

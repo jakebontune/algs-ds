@@ -18,11 +18,9 @@
 @end
 
 @implementation JVGraphD2LAConnectionStore {
-	NSUInteger _connectionCount;
 	NSUInteger _directedConnectionCount;
-	NSUInteger _inDegreeCount;
+	NSUInteger _distinctIncidenceCount;
 	NSUInteger _undirectedConnectionCount;
-	NSUInteger _outDegreeCount;
 }
 
 #pragma mark - Creating a Graph D2LA Connection Store
