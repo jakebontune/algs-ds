@@ -1,5 +1,4 @@
 #import "JVGraphConnectionAttributes.h"
-#import "JVGraphConstants.h"
 
 @implementation JVGraphConnectionAttributes {
 	id _adjacentNode;

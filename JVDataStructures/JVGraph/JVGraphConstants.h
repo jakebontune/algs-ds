@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 
-static NSString * const JVNotAValue = @"NotAValue";
 static int const kJV_GRAPH_DEFAULT_VALUE_ZERO = 0;
 static int const kJV_GRAPH_DEFAULT_SELF_LOOP_DEGREE = 2;
 static int const kJV_GRAPH_DEFAULT_VALUE_ONE = 1;

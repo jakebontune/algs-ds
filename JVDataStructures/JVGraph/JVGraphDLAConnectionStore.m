@@ -25,7 +25,7 @@
 @implementation JVGraphDLAConnectionStore {
 	NSUInteger _directedConnectionCount;
 	NSMutableDictionary<id <NSCopying>, JVMutableSinglyLinkedList *> *_nodeDictionary;
-	NSMutableDictionary<id <NSCopying>, JVGraphDegreeAttributes *> *_nodeInfoDictionary;
+	NSMutableDictionary<id <NSCopying>, JVGraphDegreeAttributes *> *_degreeInfoDictionary;
 	NSUInteger _undirectedConnectionCount;
 	NSUInteger _uniqueIncidenceCount;
 }
@@ -35,7 +35,7 @@
 - (instancetype)init {
 	if(self = [super init]) {
 		_nodeDictionary = [NSMutableDictionary dictionary];
-		_nodeInfoDictionary = [NSMutableDictionary dictionary];
+		_degreeInfoDictionary = [NSMutableDictionary dictionary];
 	}
 
 	return self;
@@ -125,7 +125,7 @@
 			degreeAttributes.outdegree = kJV_GRAPH_DEFAULT_VALUE_ONE;
 		}
 
-    	_nodeInfoDictionary[node2] = degreeAttributes;
+    	_degreeInfoDictionary[node2] = degreeAttributes;
     } else if((node2List != nil) && (node1List == nil)) {
     	++_uniqueIncidenceCount;
 
@@ -149,7 +149,7 @@
 			degreeAttributes.indegree = kJV_GRAPH_DEFAULT_VALUE_ONE;
 		}
 
-		_nodeInfoDictionary[node1] = degreeAttributes;
+		_degreeInfoDictionary[node1] = degreeAttributes;
     } else if((node2List == nil) && (node1List != nil)) {
     	++_uniqueIncidenceCount;
 
@@ -177,7 +177,7 @@
 			[self incrementIndegreeOfNode:node1];
 		}
 
-		_nodeInfoDictionary[node2] = degreeAttributes;
+		_degreeInfoDictionary[node2] = degreeAttributes;
     } else { // both are new entries
     	++_uniqueIncidenceCount;
 
@@ -207,8 +207,8 @@
 			degreeAttributes1.indegree = kJV_GRAPH_DEFAULT_VALUE_ONE;
 		}
 
-		_nodeInfoDictionary[node2] = degreeAttributes2;
-		_nodeInfoDictionary[node1] = degreeAttributes1;
+		_degreeInfoDictionary[node2] = degreeAttributes2;
+		_degreeInfoDictionary[node1] = degreeAttributes1;
     }
 }
 
@@ -260,7 +260,7 @@
 	}
 
 	[_nodeDictionary removeObjectForKey:node];
-	[_nodeInfoDictionary removeObjectForKey:node];
+	[_degreeInfoDictionary removeObjectForKey:node];
 	_uniqueIncidenceCount -= [uniqueIncidenceArray count];
 }
 
@@ -377,9 +377,9 @@
     for(JVGraphConnectionAttributes *connectionAttributes in adjacencyList.objectEnumerator) {
     	if([connectionAttributes.adjacentNode isEqual:node2] && [connectionAttributes.value isEqualToValue:value]) {
     		if(directed) {
-    			if(connectionAttributes.isDirected && connectionAttributes.isInitialNode) return YES;
+    			return connectionAttributes.isDirected && connectionAttributes.isInitialNode;
     		} else {
-    			if(connectionAttributes.isUndirected) return YES;
+    			return connectionAttributes.isUndirected;
     		}
     	}
     }
@@ -388,7 +388,7 @@
 }
 
 - (NSUInteger)degreeOfNode:(id)node {
-	JVGraphDegreeAttributes *degreeAttributes = _nodeInfoDictionary[node];
+	JVGraphDegreeAttributes *degreeAttributes = _degreeInfoDictionary[node];
 	if(degreeAttributes == nil) return 0;
 	return degreeAttributes.degree;
 }
@@ -398,7 +398,7 @@
 }
 
 - (NSUInteger)indegreeOfNode:(id)node {
-	JVGraphDegreeAttributes *degreeAttributes = _nodeInfoDictionary[node];
+	JVGraphDegreeAttributes *degreeAttributes = _degreeInfoDictionary[node];
 	if(degreeAttributes == nil) return 0;
 	return degreeAttributes.indegree;
 }
@@ -408,7 +408,7 @@
 }
 
 - (NSUInteger)outdegreeOfNode:(id)node {
-	JVGraphDegreeAttributes *degreeAttributes = _nodeInfoDictionary[node];
+	JVGraphDegreeAttributes *degreeAttributes = _degreeInfoDictionary[node];
 	if(degreeAttributes == nil) return 0;
 	return degreeAttributes.outdegree;
 }
@@ -448,17 +448,17 @@
 }
 
 - (void)updateDegreeOfNode:(id)node withAmount:(NSInteger)amount {
-	JVGraphDegreeAttributes *degreeAttributes = _nodeInfoDictionary[node];
+	JVGraphDegreeAttributes *degreeAttributes = _degreeInfoDictionary[node];
 	[degreeAttributes updateDegreeWithAmount:amount];
 }
 
 - (void)updateIndegreeOfNode:(id)node withAmount:(NSInteger)amount {
-	JVGraphDegreeAttributes *degreeAttributes = _nodeInfoDictionary[node];
+	JVGraphDegreeAttributes *degreeAttributes = _degreeInfoDictionary[node];
 	[degreeAttributes updateIndegreeWithAmount:amount];
 }
 
 - (void)updateOutdegreeOfNode:(id)node withAmount:(NSInteger)amount {
-	JVGraphDegreeAttributes *degreeAttributes = _nodeInfoDictionary[node];
+	JVGraphDegreeAttributes *degreeAttributes = _degreeInfoDictionary[node];
 	[degreeAttributes updateOutdegreeWithAmount:amount];
 }
 

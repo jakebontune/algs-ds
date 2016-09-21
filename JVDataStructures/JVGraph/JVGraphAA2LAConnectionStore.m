@@ -78,13 +78,14 @@
             node1Index = indexSet.firstIndex;
         }
 
-        adjacencyArray = [_nodeMatrixArray objectAtIndex:node2Index];
-        connectionList = [adjacencyArray objectAtIndex:node1Index];
+        connectionList = _nodeMatrixArray[node2Index][node1Index];
+
+        if(connectionList.count == 0) ++_uniqueIncidenceCount;
+
         [connectionList addObject:[connectionAttributes copy]];
 
         // node1 setup
-        adjacencyArray = [_nodeMatrixArray objectAtIndex:node1Index];
-        connectionList = [adjacencyArray objectAtIndex:node2Index];
+        connectionList = _nodeMatrixArray[node1Index][node2Index];
 
         connectionAttributes.adjacentNode = node2;
         connectionAttributes.initialNode = NO;
@@ -98,15 +99,13 @@
             [self incrementOutdegreeAtNodeIndex:node2Index];
             [self incrementIndegreeAtNodeIndex:node1Index];
         }
-
-        if(connectionList.count == 1) ++_uniqueIncidenceCount;
     } else if((indexSet.count == 1) && [node1 isEqual:node2]) { // self loop with preexisting node
         connectionList = _nodeMatrixArray[indexSet.firstIndex][indexSet.firstIndex];
         if(connectionList.count == 0) ++_uniqueIncidenceCount;
 
         [connectionList addObject:connectionAttributes];
 
-        [self updateDegreeAtNodeIndex:indexSet.firstIndex withAmount:2]; // self loops contribute two degrees
+        [self updateDegreeAtNodeIndex:indexSet.firstIndex withAmount:kJV_GRAPH_DEFAULT_SELF_LOOP_DEGREE]; // self loops contribute two degrees
 
         if(directed) {
             [self incrementOutdegreeAtNodeIndex:indexSet.firstIndex];
@@ -268,12 +267,12 @@
         degreeAttributes2.degree = kJV_GRAPH_DEFAULT_VALUE_ONE;
         degreeAttributes1.degree = kJV_GRAPH_DEFAULT_VALUE_ONE;
 	    if(directed) {
-	    	// node 2 contributes outdegree
             degreeAttributes2.outdegree = kJV_GRAPH_DEFAULT_VALUE_ONE;
-
-	    	// node 1 contributes indegree
             degreeAttributes1.indegree = kJV_GRAPH_DEFAULT_VALUE_ONE;
 	    }
+
+        [_degreeInfoArray addObject:degreeAttributes2];
+        [_degreeInfoArray addObject:degreeAttributes1];
 
 	    ++_uniqueIncidenceCount;
     }
@@ -287,51 +286,51 @@
     	return ([obj isEqual:node]);
     }];
 
-    if(indexSet.firstIndex != NSNotFound) {
-        NSUInteger idx;
-    	JVMutableSinglyLinkedList *list;
+    if(indexSet.firstIndex != NSNotFound) return;
 
-    	// Get each node's adjacency array. Get the list in each array
-    	// corresponding to the departing node's index. Go through the list and
-    	// update degree counters at the current search node's index in the
-    	// degree arrays. Remove the list associated with the departing node
-    	// from the current search node's adjacency array.
-    	for(NSMutableArray *adjacencyArray in _nodeMatrixArray) {
-    		list = [adjacencyArray objectAtIndex:indexSet.firstIndex];
-    		NSUInteger indegreeCount, outdegreeCount;
+    NSUInteger idx;
+    JVMutableSinglyLinkedList *list;
 
-    		// We know the row is determined by idx and the 'column' is the
-    		// departing node's index. So we simply need to check if the list
-    		// at that position is occupied - if it is, we can safely say we
-    		// are looking at a unique connection.
-    		if(list.count != 0) --_uniqueIncidenceCount;
+    // Get each node's adjacency array. Get the list in each array
+    // corresponding to the departing node's index. Go through the list and
+    // update degree counters at the current search node's index in the
+    // degree arrays. Remove the list associated with the departing node
+    // from the current search node's adjacency array.
+    for(NSMutableArray *adjacencyArray in _nodeMatrixArray) {
+        list = [adjacencyArray objectAtIndex:indexSet.firstIndex];
+        NSUInteger indegreeCount, outdegreeCount;
 
-    		// The row node is the node at idx.
-    		for(JVGraphConnectionAttributes *connectionAttributes in list.objectEnumerator) {
-    			if(connectionAttributes.isDirected) {
-    				if(connectionAttributes.isInitialNode) {
-    					++outdegreeCount;
-    				} else {
-    					++indegreeCount;
-    				}
-                    --_directedConnectionCount;
-    			} else {
-    				--_undirectedConnectionCount;
-    			}
-    		}
+        // We know the row is determined by idx and the 'column' is the
+        // departing node's index. So we simply need to check if the list
+        // at that position is occupied - if it is, we can safely say we
+        // are looking at a unique connection.
+        if(list.count != 0) --_uniqueIncidenceCount;
 
-    		[self updateDegreeAtNodeIndex:idx withAmount:-list.count];
-    		[self updateIndegreeAtNodeIndex:idx withAmount:-indegreeCount];
-    		[self updateOutdegreeAtNodeIndex:idx withAmount:-outdegreeCount];
+        // The row node is the node at idx.
+        for(JVGraphConnectionAttributes *connectionAttributes in list.objectEnumerator) {
+            if(connectionAttributes.isDirected) {
+                if(connectionAttributes.isInitialNode) {
+                    ++outdegreeCount;
+                } else {
+                    ++indegreeCount;
+                }
+                --_directedConnectionCount;
+            } else {
+                --_undirectedConnectionCount;
+            }
+        }
 
-    		++idx;
+        [self updateDegreeAtNodeIndex:idx withAmount:-list.count];
+        [self updateIndegreeAtNodeIndex:idx withAmount:-indegreeCount];
+        [self updateOutdegreeAtNodeIndex:idx withAmount:-outdegreeCount];
 
-    		[adjacencyArray removeObjectAtIndex:indexSet.firstIndex];
-    	}
+        ++idx;
 
-    	[_nodeArray removeObjectAtIndex:indexSet.firstIndex];
-        [_degreeInfoArray removeObjectAtIndex:indexSet.firstIndex];
+        [adjacencyArray removeObjectAtIndex:indexSet.firstIndex];
     }
+
+    [_nodeArray removeObjectAtIndex:indexSet.firstIndex];
+    [_degreeInfoArray removeObjectAtIndex:indexSet.firstIndex];
 }
 
 - (void)removeNode:(id)node1
@@ -352,7 +351,7 @@
     		if([self connectionAttributes:connectionAttributes matchesWithDirected:directed value:value]) {
     			[connectionList removeObject:connectionAttributes];
     			// self loops contribute two degrees
-    			[self updateDegreeAtNodeIndex:indexSet.firstIndex withAmount:-2];
+    			[self updateDegreeAtNodeIndex:indexSet.firstIndex withAmount:-kJV_GRAPH_DEFAULT_SELF_LOOP_DEGREE];
     			if(directed) {
     				[self decrementIndegreeAtNodeIndex:indexSet.firstIndex];
     				[self decrementOutdegreeAtNodeIndex:indexSet.firstIndex];
@@ -446,14 +445,10 @@
     	for(JVGraphConnectionAttributes *connectionAttributes in connectionList.objectEnumerator) {
     		if([self connectionAttributes:connectionAttributes matchesWithDirected:directed value:value]) {
     			if(directed) {
-    				if(connectionAttributes.isDirected && connectionAttributes.isInitialNode) {
-	    				return YES;
-	    			}
-    			} else {
-    				if(connectionAttributes.isUndirected) {
-	    				return YES;
-	    			}
-    			}
+                    return connectionAttributes.isDirected && connectionAttributes.isInitialNode;
+                } else {
+                    return connectionAttributes.isUndirected;
+                }
     		}
     	}
     }

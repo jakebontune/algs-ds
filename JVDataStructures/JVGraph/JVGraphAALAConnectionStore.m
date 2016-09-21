@@ -445,11 +445,9 @@
     	for(JVGraphConnectionAttributes *connectionAttributes in connectionList.objectEnumerator) {
     		if([connectionAttributes.adjacentNode isEqual:node2] && [connectionAttributes.value isEqualToValue:value]) {
     			if(directed) {
-    				if(connectionAttributes.isDirected && connectionAttributes.isInitialNode) return YES;
+    				return connectionAttributes.isDirected && connectionAttributes.isInitialNode;
     			} else {
-    				if(connectionAttributes.isUndirected) {
-	    				return YES;
-	    			}
+                    return connectionAttributes.isUndirected;
     			}
     		}
     	}
