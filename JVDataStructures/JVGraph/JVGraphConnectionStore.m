@@ -158,7 +158,7 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
     return [_store connectionExistsFromNode:node1 toNode:node2 directed:directed value:value];
 }
 
-- (NSNumber *)degreeOfNode:(id)node {
+- (NSUInteger)degreeOfNode:(id)node {
 	return [_store degreeOfNode:node];
 }
 
@@ -166,11 +166,7 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
 	return [_store directedConnectionCount];
 }
 
-- (NSUInteger)uniqueIncidenceCount {
-	return [_store uniqueIncidenceCount];
-}
-
-- (NSNumber *)indegreeOfNode:(id)node {
+- (NSUInteger)indegreeOfNode:(id)node {
 	return [_store indegreeOfNode:node];
 }
 
@@ -178,12 +174,16 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
 	return [_store nodeCount];
 }
 
-- (NSNumber *)outdegreeOfNode:(id)node {
+- (NSUInteger)outdegreeOfNode:(id)node {
 	return [_store outdegreeOfNode:node];
 }
 
 - (NSUInteger)undirectedConnectionCount {
 	return [_store undirectedConnectionCount];
+}
+
+- (NSUInteger)uniqueIncidenceCount {
+  return [_store uniqueIncidenceCount];
 }
 
 @end

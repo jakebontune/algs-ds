@@ -14,25 +14,26 @@ NS_ASSUME_NONNULL_BEGIN
                         directed:(BOOL)directed
                            value:(NSValue *)value;
 @property(nonatomic, readonly) NSUInteger connectionCount;
-- (NSNumber *)degreeOfNode:(NodeType)node;
+@property(nonatomic, readonly) NSUInteger nodeCount;
+- (NSUInteger)degreeOfNode:(NodeType)node;
 @property(nonatomic, readonly) NSUInteger directedConnectionCount;
-@property(nonatomic, readonly) NSUInteger distinctIncidenceCount;
-- (NSNumber *)indegreeOfNode:(NodeType)node;
-- (instancetype)initWithNode:(NodeType <NSCopying>)node1
-              adjacentToNode:(NodeType <NSCopying>)node2
+- (NSUInteger)indegreeOfNode:(NodeType)node;
+- (instancetype)initWithNode:(NodeType)node1
+              adjacentToNode:(NodeType)node2
                     directed:(BOOL)directed
                        value:(NSValue *)value;
-- (NSNumber *)outdegreeOfNode:(NodeType)node;
+- (NSUInteger)outdegreeOfNode:(NodeType)node;
 - (void)removeNode:(NodeType)node;
 - (void)removeNode:(NodeType)node1
     adjacentToNode:(NodeType)node2
           directed:(BOOL)directed
              value:(NSValue *)value;
-- (void)setNode:(NodeType <NSCopying>)node1
- adjacentToNode:(NodeType <NSCopying>)node2
+- (void)setNode:(NodeType)node1
+ adjacentToNode:(NodeType)node2
        directed:(BOOL)directed
           value:(NSValue *)value;
 @property(nonatomic, readonly) NSUInteger undirectedConnectionCount;
+@property(nonatomic, readonly) NSUInteger uniqueIncidenceCount;
 
 @end
 

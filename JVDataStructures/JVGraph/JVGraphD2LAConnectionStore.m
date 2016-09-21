@@ -4,13 +4,17 @@
 
 #import <Foundation/Foundation.h>
 #import "JVGraphConnectionStoreProtocol.h"
+#import "JVGraphConstants.h"
+#import "../JVMutableSinglyLinkedList.h"
+#import "JVGraphConnectionAttributes.h"
+#import "JVGraphDegreeAttributes.h"
 
 /****************************
 ** JVGraphD2LAConnectionStore
 ** Dictionary of adjacency Dictionaries of connections Lists of
 ** connection properties Arrays.
 ** An adjacency matrix implementation.
-** Useful for graphs with a great amount of vertices and
+** Efficient with graphs with a great amount of vertices and
 ** connections.
 */
 @interface JVGraphD2LAConnectionStore : NSObject<JVGraphConnectionStoreProtocol>
@@ -19,19 +23,41 @@
 
 @implementation JVGraphD2LAConnectionStore {
 	NSUInteger _directedConnectionCount;
-	NSUInteger _distinctIncidenceCount;
+	NSMutableDictionary *_nodeMatrixDictionary;
+	NSMutableDictionary *_nodeInfoDictionary;
 	NSUInteger _undirectedConnectionCount;
+	NSUInteger _uniqueIncidenceCount;
 }
 
-#pragma mark - Creating a Graph D2LA Connection Store
 #pragma mark - Initializing a Graph D2LA Connection Store
-#pragma mark - Adding to a Graph DLA Connection Store
-- (void)addNode:(id)node1
- adjacentToNode:(id)node2
- 	   directed:(BOOL)directed
-  		  value:(NSValue *)value {
-  	NSLog(@"adding from D2LA");
+
+- (instancetype)init {
+	if(self = [super init]) {
+		_nodeMatrixDictionary = [NSMutableDictionary dictionary];
+		_nodeInfoDictionary = [NSMutableDictionary dictionary];
+	}
+
+	return self;
 }
+
+#pragma mark - Adding to a Graph DLA Connection Store
+
+- (void)setNode:(id)node1
+ adjacentToNode:(id)node2
+       directed:(BOOL)directed
+          value:(NSValue *)value {
+    JVMutableSinglyLinkedList *connectionList1, *connectionList2;
+    JVGraphConnectionAttributes *connectionAttributes;
+
+    if(directed) {
+    	++_directedConnectionCount;
+    } else {
+    	++_undirectedConnectionCount;
+    }
+
+	connectionAttributes = [JVGraphConnectionAttributes attributesWithAdjacentNode:node1 directed:directed initialNode:YES value:value];
+}
+
 #pragma mark - Removing from a Graph D2LA Connection Store
 #pragma mark - Querying a Graph D2LA Connection Store
 
