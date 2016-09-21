@@ -69,6 +69,12 @@
 	_value = value;
 }
 
+#pragma mark - NSObject Protocol
+
+- (BOOL)isEqual:(JVGraphConnectionAttributes *)attributes {
+	return ([_adjacentNode isEqual:attributes.adjacentNode]) && (_isDirected == attributes.isDirected) && (_isInitialNode == attributes.isInitialNode) && ([_value isEqualToValue:value]) && ([self hash] == [attributes hash]);
+}
+
 #pragma mark - NSCopying Protocol
 
 - (JVGraphConnectionAttributes *)copyWithZone:(NSZone *)zone {
