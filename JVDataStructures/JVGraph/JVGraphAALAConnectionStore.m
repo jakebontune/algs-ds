@@ -8,6 +8,7 @@
 #import "JVGraphConstants.h"
 #import "JVGraphConnectionAttributes.h"
 #import "JVGraphDegreeAttributes.h"
+#import "../JVBlockEnumerator.h"
 
 /****************************
 ** JVGraphAALAConnectionStore
@@ -509,6 +510,28 @@
 
 - (NSUInteger)uniqueIncidenceCount {
     return _uniqueIncidenceCount;
+}
+
+#pragma mark - Enumerating a Graph AALA Connection Store
+
+- (NSEnumerator *)adjacencyEnumerator {
+    __block NSUInteger idx;
+    JVBlockEnumerator *enumerator = [[JVBlockEnumerator alloc] initWithBlock:^{
+        if(idx < [_nodeArray count]) {
+            NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys: _adjacencyArray[idx].objectEnumerator.allObjects, _nodeArray[idx],
+                nil];
+            ++idx;
+            return dictionary;
+        }
+
+        return (NSDictionary *)nil;
+    }];
+
+    return enumerator;
+}
+
+- (NSEnumerator *)nodeEnumerator {
+    return _nodeArray.objectEnumerator;
 }
 
 #pragma mark - Private Node Properties Accessor Methods

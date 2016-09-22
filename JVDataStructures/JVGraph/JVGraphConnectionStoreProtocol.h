@@ -1,11 +1,12 @@
 #import <Foundation/Foundation.h>
+#import "JVGraphConnectionAttributes.h"
 
 @protocol JVGraphConnectionStoreProtocol
 NS_ASSUME_NONNULL_BEGIN
 
 @required
 
-- (NSEnumerator<NSDictionary<id <NSCopying>, NSArray<NSDictionary *> *> *> *)adjacencyEnumerator;
+- (NSEnumerator<NSDictionary<id <NSCopying>, NSArray<JVGraphConnectionAttributes *> *> *> *)adjacencyEnumerator;
 - (BOOL)connectionExistsFromNode:(id)node1
                           toNode:(id)node2
                         directed:(BOOL)directed
@@ -15,6 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSUInteger)degreeOfNode:(id)node;
 @property(nonatomic, readonly) NSUInteger directedConnectionCount;
 - (NSUInteger)indegreeOfNode:(id)node;
+- (NSEnumerator *)nodeEnumerator;
 - (NSUInteger)outdegreeOfNode:(id)node;
 - (void)removeNode:(id)node;
 - (void)removeNode:(id)node1

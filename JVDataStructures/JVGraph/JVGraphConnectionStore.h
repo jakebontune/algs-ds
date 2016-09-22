@@ -7,8 +7,9 @@ NS_ASSUME_NONNULL_BEGIN
 // adjacency metrics in various forms and is able convert between
 // these forms when appropriate (context being of time-space
 // efficiency).
-@interface JVGraphConnectionStore<NodeType> : NSObject<JVGraphConnectionStoreProtocol>
+@interface JVGraphConnectionStore<NodeType> : NSObject
 
+- (NSEnumerator *)adjacencyEnumerator;
 - (BOOL)connectionExistsFromNode:(NodeType)node1
                           toNode:(NodeType)node2
                         directed:(BOOL)directed
@@ -22,6 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
               adjacentToNode:(NodeType)node2
                     directed:(BOOL)directed
                        value:(NSValue *)value;
+- (NSEnumerator *)nodeEnumerator;
 - (NSUInteger)outdegreeOfNode:(NodeType)node;
 - (void)removeNode:(NodeType)node;
 - (void)removeNode:(NodeType)node1

@@ -20,10 +20,14 @@
 #pragma mark - Initializing Connection Attributes
 
 - (instancetype)initWithAdjacentNode:(id)node directed:(BOOL)isDirected initialNode:(BOOL)isInitialNode value:(NSValue *)value {
-	_adjacentNode = node;
-	_isDirected = isDirected;
-	_isInitialNode = isInitialNode;
-	_value = value;
+	if(self = [self init]) {
+		_adjacentNode = node;
+		_isDirected = isDirected;
+		_isInitialNode = isInitialNode;
+		_value = value;
+	}
+
+	return self;
 }
 
 #pragma mark - Querying for Connection Attributes
@@ -71,7 +75,7 @@
 #pragma mark - NSObject Protocol
 
 - (BOOL)isEqual:(JVGraphConnectionAttributes *)attributes {
-	return ([_adjacentNode isEqual:attributes.adjacentNode]) && (_isDirected == attributes.isDirected) && (_isInitialNode == attributes.isInitialNode) && ([_value isEqualToValue:value]) && ([self hash] == [attributes hash]);
+	return ([_adjacentNode isEqual:attributes.adjacentNode]) && (_isDirected == attributes.isDirected) && (_isInitialNode == attributes.isInitialNode) && ([_value isEqualToValue:attributes.value]) && ([self hash] == [attributes hash]);
 }
 
 #pragma mark - NSCopying Protocol

@@ -2,12 +2,11 @@
 #error "This file requires ARC support"
 #endif
 
-#import <Foundation/Foundation.h>
 #import "JVGraphConnectionStoreProtocol.h"
 #import "JVGraphConstants.h"
 #import "../JVMutableSinglyLinkedList.h"
-#import "JVGraphConnectionAttributes.h"
 #import "JVGraphDegreeAttributes.h"
+#import "../JVBlockEnumerator.h"
 
 /****************************
 ** JVGraphD2LAConnectionStore
@@ -23,7 +22,7 @@
 
 @implementation JVGraphD2LAConnectionStore {
 	NSUInteger _directedConnectionCount;
-	NSMutableDictionary<id <NSCopying>, JVMutableSinglyLinkedList *> *_nodeMatrixDictionary;
+	NSMutableDictionary<id <NSCopying>, NSMutableDictionary<id <NSCopying>, JVMutableSinglyLinkedList *> *> *_nodeMatrixDictionary;
 	NSMutableDictionary<id <NSCopying>, JVGraphDegreeAttributes *> *_degreeInfoDictionary;
 	NSUInteger _undirectedConnectionCount;
 	NSUInteger _uniqueIncidenceCount;
@@ -99,7 +98,7 @@
 		// Set all the vertices as potential neighbors to the new node
 		for(id keyNode in _nodeMatrixDictionary) {
 			_nodeMatrixDictionary[keyNode][node2] = [JVMutableSinglyLinkedList list];
-			adjacencyDictionary[keyNode] = [JVMutableSinglyLinkedList list];
+			adjacencyDictionary2[keyNode] = [JVMutableSinglyLinkedList list];
 		}
 		// once for the new node
 		[connectionList2 addObject:connectionAttributes];
@@ -212,8 +211,8 @@
 		connectionAttributes.initialNode = NO;
 
 		[connectionList1 addObject:connectionAttributes];
-		adjacencyDictionary1[node2] = connectionAttributes;
-		_nodeMatrixDictionary[node1] = connectionList1;
+		adjacencyDictionary1[node2] = connectionList1;
+		_nodeMatrixDictionary[node1] = adjacencyDictionary1;
 
 		degreeAttributes2.degree = kJV_GRAPH_DEFAULT_VALUE_ONE;
 		degreeAttributes1.degree = kJV_GRAPH_DEFAULT_VALUE_ONE;
@@ -286,7 +285,7 @@
     			if(directed) {
     				[self decrementIndegreeOfNode:node2];
     				[self decrementOutdegreeOfNode:node2];
-    				==_directedConnectionCount;
+    				--_directedConnectionCount;
     			} else {
     				--_undirectedConnectionCount;
     			}
@@ -379,7 +378,7 @@
 }
 
 - (NSUInteger)nodeCount {
-	return [_nodeDictionary count];
+	return [_nodeMatrixDictionary count];
 }
 
 - (NSUInteger)outdegreeOfNode:(id)node {
@@ -394,6 +393,33 @@
 
 - (NSUInteger)uniqueIncidenceCount {
 	return _uniqueIncidenceCount;
+}
+
+#pragma mark - Enumerating a Graph D2LA Connection Store
+
+- (NSEnumerator *)adjacencyEnumerator {
+	__block NSEnumerator *nodeEnumerator = _nodeMatrixDictionary.objectEnumerator;
+	JVBlockEnumerator *enumerator = [[JVBlockEnumerator alloc] initWithBlock:^{
+		NSMutableArray *array = [NSMutableArray array];
+		id node = [nodeEnumerator nextObject];
+		if(node != nil) {
+			for(id keyNode in _nodeMatrixDictionary[node]) {
+				for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixDictionary[node][keyNode].objectEnumerator) {
+					[array addObject:connectionAttributes];
+				}
+			}
+
+			return [NSDictionary dictionaryWithObjectsAndKeys: [NSArray arrayWithArray:array], node, nil];
+		}
+
+		return (NSDictionary *)nil;
+	}];
+
+	return enumerator;
+}
+
+- (NSEnumerator *)nodeEnumerator {
+    return _nodeMatrixDictionary.keyEnumerator;
 }
 
 #pragma mark - Private Methods

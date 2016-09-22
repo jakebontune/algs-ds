@@ -8,6 +8,7 @@
 #import "../JVMutableSinglyLinkedList.h"
 #import "JVGraphConnectionAttributes.h"
 #import "JVGraphDegreeAttributes.h"
+#import "../JVBlockEnumerator.h"
 
 /****************************
 ** JVGraphAA2LAConnectionStore
@@ -27,7 +28,7 @@
     NSMutableArray<JVGraphDegreeAttributes *> *_degreeInfoArray;
 	NSUInteger _directedConnectionCount;
 	NSMutableArray *_nodeArray;
-	NSMutableArray *_nodeMatrixArray;
+	NSMutableArray<NSMutableArray<JVMutableSinglyLinkedList *> *> *_nodeMatrixArray;
 	NSUInteger _undirectedConnectionCount;
     NSUInteger _uniqueIncidenceCount;
 }
@@ -509,6 +510,34 @@
 
 - (NSUInteger)uniqueIncidenceCount {
     return _uniqueIncidenceCount;
+}
+
+#pragma mark - Enumerating a Graph AA2LA Connection Store
+
+- (NSEnumerator *)adjacencyEnumerator {
+    __block NSUInteger idx;
+    JVBlockEnumerator *enumerator = [[JVBlockEnumerator alloc] initWithBlock:^{
+        NSMutableArray *array = [NSMutableArray array];
+        if(idx < [_nodeArray count]) {
+            for(NSUInteger i = 0; i < [_nodeArray count]; ++i) {
+                for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixArray[idx][i].objectEnumerator) {
+                    [array addObject:connectionAttributes];
+                }
+            }
+            NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys: [NSArray arrayWithArray:array], _nodeArray[idx],
+                nil];
+            ++idx;
+            return dictionary;
+        }
+
+        return (NSDictionary *)nil;
+    }];
+
+    return enumerator;
+}
+
+- (NSEnumerator *)nodeEnumerator {
+    return _nodeArray.objectEnumerator;
 }
 
 #pragma mark - Private Methods

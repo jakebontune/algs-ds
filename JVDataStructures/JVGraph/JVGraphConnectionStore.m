@@ -186,4 +186,14 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
   return [_store uniqueIncidenceCount];
 }
 
+#pragma mark - Enumerating a Graph Connection Store
+
+- (NSEnumerator *)adjacencyEnumerator {
+    return _store.adjacencyEnumerator;
+}
+
+- (NSEnumerator *)nodeEnumerator {
+    return _store.nodeEnumerator;
+}
+
 @end

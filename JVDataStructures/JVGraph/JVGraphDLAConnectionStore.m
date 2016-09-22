@@ -8,6 +8,7 @@
 #import "../JVMutableSinglyLinkedList.h"
 #import "JVGraphConnectionAttributes.h"
 #import "JVGraphDegreeAttributes.h"
+#import "../JVBlockEnumerator.h"
 
 /****************************
 ** JVGraphDLAConnectionStore
@@ -419,6 +420,26 @@
 
 - (NSUInteger)uniqueIncidenceCount {
 	return _uniqueIncidenceCount;
+}
+
+#pragma mark - Enumerating a Graph DLA Connection Store
+
+- (NSEnumerator *)adjacencyEnumerator {
+	__block NSEnumerator *nodeEnumerator = _nodeDictionary.objectEnumerator;
+	JVBlockEnumerator *enumerator = [[JVBlockEnumerator alloc] initWithBlock:^{
+		id node = [nodeEnumerator nextObject];
+		if(node != nil) {
+			return [NSDictionary dictionaryWithObjectsAndKeys: _nodeDictionary[node].objectEnumerator.allObjects, node, nil];
+		}
+
+		return (NSDictionary *)nil;
+	}];
+
+	return enumerator;
+}
+
+- (NSEnumerator *)nodeEnumerator {
+	return _nodeDictionary.keyEnumerator;
 }
 
 #pragma mark - Private Node Info Accessor Methods
