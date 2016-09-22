@@ -4,28 +4,16 @@
 
 #import "JVGraphConnectionStore.h"
 #import "JVGraphConstants.h"
+#import "JVGraphConnectionAttributes.h"
 
 static NSString * const kCLASS_JVGraphAALAConnectionStore = @"JVGraphAALAConnectionStore";
 static NSString * const kCLASS_JVGraphDLAConnectionStore = @"JVGraphDLAConnectionStore";
 static NSString * const kCLASS_JVGraphAA2LAConnectionStore = @"JVGraphAA2LAConnectionStore";
 static NSString * const kCLASS_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnectionStore";
 
-/* Store Representation change thresholds
-** Threshold is based on benchmark tests from
-** https://www.objc.io/issues/7-foundation/collections/
-** Representation is chosen based on following formulas:
-** |V| denotes the number of nodes
-** |E| denotes the number of distinct connections
-** AALA  - |V| <  THRESHOLD && |E| <  (2/3)|V|^2
-** AA2LA - |V| <  THRESHOLD && |E| >= (2/3)|V|^2
-** DLA 	 - |V| >= THRESHOLD && |E| <  (2/3)|V|^2
-** D2LA  - |V| >= THRESHOLD && |E| >= (2/3)|V|^2
-*/
-static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000; // 500,000
-
 @implementation JVGraphConnectionStore {
 @private
-	id<JVGraphConnectionStoreProtocol> _store;
+	id<NSObject, JVGraphConnectionStoreProtocol> _store;
 }
 
 #pragma mark - Creating a Graph Connection Store
@@ -194,6 +182,48 @@ static NSUInteger const kJV_GRAPH_CONNECTION_STORE_NUM_NODES_THRESHOLD = 500000;
 
 - (NSEnumerator *)nodeEnumerator {
     return _store.nodeEnumerator;
+}
+
+#pragma mark - Store Representation Conversions
+
+- (void)useAA2LARepresentation {
+    [self useRepresentationWithClassFromString:kCLASS_JVGraphAA2LAConnectionStore];
+}
+
+- (void)useAALARepresentation {
+    [self useRepresentationWithClassFromString:kCLASS_JVGraphAALAConnectionStore];
+}
+
+- (void)useD2LARepresentation {
+    [self useRepresentationWithClassFromString:kCLASS_JVGraphD2LAConnectionStore];
+}
+
+- (void)useDLARepresentation {
+    [self useRepresentationWithClassFromString:kCLASS_JVGraphDLAConnectionStore];
+}
+
+#pragma mark - Private Methods
+
+- (void)useRepresentationWithClassFromString:(NSString *)string {
+    Class JVGraphChosenConnectionStore = NSClassFromString(string);
+
+    if([_store isKindOfClass:JVGraphChosenConnectionStore]) return;
+
+    id<NSObject, JVGraphConnectionStoreProtocol> store = [[JVGraphChosenConnectionStore alloc] init];
+    NSArray *adjacencyArray = [_store adjacencyEnumerator].allObjects;
+    id keyNode;
+    for(NSDictionary *dictionary in adjacencyArray) {
+        keyNode = [dictionary.objectEnumerator nextObject];
+        for(JVGraphConnectionAttributes *connectionAttributes in dictionary[keyNode]) {
+            if(connectionAttributes.isInitialNode) {
+                [store setNode:connectionAttributes.adjacentNode adjacentToNode:keyNode directed:connectionAttributes.isDirected value:connectionAttributes.value];
+            } else {
+                [store setNode:keyNode adjacentToNode:connectionAttributes.adjacentNode directed:connectionAttributes.isDirected value:connectionAttributes.value];
+            }
+        }
+    }
+
+    _store = store;
 }
 
 @end

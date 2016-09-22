@@ -37,6 +37,23 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSUInteger undirectedConnectionCount;
 @property(nonatomic, readonly) NSUInteger uniqueIncidenceCount;
 
+/* Store Representation recommended change formulas
+** Based on benchmark tests from
+** https://www.objc.io/issues/7-foundation/collections/
+** Representation is chosen based on following formulas:
+** |V| denotes the number of nodes
+** |E| denotes the number of unique connections
+** AALA  - |V| <  THRESHOLD && |E| <  (2/3)|V|^2
+** AA2LA - |V| <  THRESHOLD && |E| >= (2/3)|V|^2
+** DLA   - |V| >= THRESHOLD && |E| <  (2/3)|V|^2
+** D2LA  - |V| >= THRESHOLD && |E| >= (2/3)|V|^2
+*/
+
+- (void)useAA2LARepresentation;
+- (void)useAALARepresentation;
+- (void)useD2LARepresentation;
+- (void)useDLARepresentation;
+
 @end
 
 @interface JVGraphConnectionStore<NodeType> (JVGraphExtendedConnectionStore)
