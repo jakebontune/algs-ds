@@ -48,7 +48,6 @@ NS_ASSUME_NONNULL_BEGIN
 ** DLA   - |V| >= THRESHOLD && |E| <  (2/3)|V|^2
 ** D2LA  - |V| >= THRESHOLD && |E| >= (2/3)|V|^2
 */
-
 - (void)useAA2LARepresentation;
 - (void)useAALARepresentation;
 - (void)useD2LARepresentation;
