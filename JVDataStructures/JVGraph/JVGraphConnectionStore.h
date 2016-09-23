@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
                         directed:(BOOL)directed
                            value:(NSValue *)value;
 @property(nonatomic, readonly) NSUInteger connectionCount;
-@property(nonatomic, readonly) NSUInteger nodeCount;
+@property(nonatomic, readonly) NSUInteger nodesConnectedCount;
 - (NSUInteger)degreeOfNode:(NodeType)node;
 @property(nonatomic, readonly) NSUInteger directedConnectionCount;
 - (NSUInteger)indegreeOfNode:(NodeType)node;
@@ -30,12 +30,15 @@ NS_ASSUME_NONNULL_BEGIN
     adjacentToNode:(NodeType)node2
           directed:(BOOL)directed
              value:(NSValue *)value;
+- (NSSet *)setOfNeighborsOfNode:(NodeType)node;
+- (NSSet *)setOfNodesAdjacentFromNode:(NodeType)node;
+- (NSSet *)setOfNodesAdjacentToNode:(NodeType)node;
 - (void)setNode:(NodeType)node1
  adjacentToNode:(NodeType)node2
        directed:(BOOL)directed
           value:(NSValue *)value;
 @property(nonatomic, readonly) NSUInteger undirectedConnectionCount;
-@property(nonatomic, readonly) NSUInteger uniqueIncidenceCount;
+@property(nonatomic, readonly) NSUInteger uniqueConnectionCount;
 
 /* Store Representation recommended change formulas
 ** Based on benchmark tests from

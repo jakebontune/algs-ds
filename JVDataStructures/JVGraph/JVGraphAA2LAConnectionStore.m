@@ -30,7 +30,7 @@
 	NSMutableArray *_nodeArray;
 	NSMutableArray<NSMutableArray<JVMutableSinglyLinkedList *> *> *_nodeMatrixArray;
 	NSUInteger _undirectedConnectionCount;
-    NSUInteger _uniqueIncidenceCount;
+    NSUInteger _uniqueConnectionCount;
 }
 
 #pragma mark - Initializing a Graph AA2LA Connection Store
@@ -81,7 +81,7 @@
 
         connectionList = _nodeMatrixArray[node2Index][node1Index];
 
-        if(connectionList.count == 0) ++_uniqueIncidenceCount;
+        if(connectionList.count == 0) ++_uniqueConnectionCount;
 
         [connectionList addObject:[connectionAttributes copy]];
 
@@ -102,7 +102,7 @@
         }
     } else if((indexSet.count == 1) && [node1 isEqual:node2]) { // self loop with preexisting node
         connectionList = _nodeMatrixArray[indexSet.firstIndex][indexSet.firstIndex];
-        if(connectionList.count == 0) ++_uniqueIncidenceCount;
+        if(connectionList.count == 0) ++_uniqueConnectionCount;
 
         [connectionList addObject:connectionAttributes];
 
@@ -139,7 +139,7 @@
 
         [_degreeInfoArray addObject:degreeAttributes];
 
-	    ++_uniqueIncidenceCount;
+	    ++_uniqueConnectionCount;
     } else if((indexSet.count == 1) && ![node1 isEqual:node2]) { // Only one of them exists.
         JVGraphDegreeAttributes *degreeAttributes = [JVGraphDegreeAttributes attributes];
         NSUInteger node1Index;
@@ -221,7 +221,7 @@
             [_degreeInfoArray addObject:degreeAttributes];
         }
 
-        ++_uniqueIncidenceCount;
+        ++_uniqueConnectionCount;
     } else { // insert two unique nodes
 	    // Order matters! The rule is to deal with the initial node
 	    // first.
@@ -275,7 +275,7 @@
         [_degreeInfoArray addObject:degreeAttributes2];
         [_degreeInfoArray addObject:degreeAttributes1];
 
-	    ++_uniqueIncidenceCount;
+	    ++_uniqueConnectionCount;
     }
 }
 
@@ -305,7 +305,7 @@
         // departing node's index. So we simply need to check if the list
         // at that position is occupied - if it is, we can safely say we
         // are looking at a unique connection.
-        if(list.count != 0) --_uniqueIncidenceCount;
+        if(list.count != 0) --_uniqueConnectionCount;
 
         // The row node is the node at idx.
         for(JVGraphConnectionAttributes *connectionAttributes in list.objectEnumerator) {
@@ -361,7 +361,7 @@
                     --_undirectedConnectionCount;
                 }
 
-    			if(connectionList.count == 0) --_uniqueIncidenceCount;
+    			if(connectionList.count == 0) --_uniqueConnectionCount;
     			break;
     		}
     	}
@@ -397,7 +397,7 @@
 	    			--_undirectedConnectionCount;
 	    		}
 
-    			if(connectionList.count == 0) --_uniqueIncidenceCount;
+    			if(connectionList.count == 0) --_uniqueConnectionCount;
     		}
     	}
     } else {
@@ -487,7 +487,7 @@
     return 0;
 }
 
-- (NSUInteger)nodeCount {
+- (NSUInteger)nodesConnectedCount {
 	return [_nodeArray count];
 }
 
@@ -504,12 +504,66 @@
     return 0;
 }
 
+- (NSSet *)setOfNeighborsOfNode:(id)node {
+    NSIndexSet *indexSet = [_nodeArray indexesOfObjectsWithOptions:NSEnumerationConcurrent passingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop) {
+        return ([obj isEqual:node]);
+    }];
+
+    if(indexSet.firstIndex == NSNotFound) return [NSSet set];
+
+    NSMutableSet *set = [NSMutableSet set];
+
+    for(NSUInteger i = 0; i < [_nodeArray count]; ++i) {
+        for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixArray[indexSet.firstIndex][i].objectEnumerator) {
+            [set addObject:connectionAttributes.adjacentNode];
+        }
+    }
+
+    return [NSSet setWithSet:set];
+}
+
+- (NSSet *)setOfNodesAdjacentFromNode:(id)node {
+    NSIndexSet *indexSet = [_nodeArray indexesOfObjectsWithOptions:NSEnumerationConcurrent passingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop) {
+        return ([obj isEqual:node]);
+    }];
+
+    if(indexSet.firstIndex == NSNotFound) return [NSSet set];
+
+    NSMutableSet *set = [NSMutableSet set];
+
+    for(NSUInteger i = 0; i < [_nodeArray count]; ++i) {
+        for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixArray[indexSet.firstIndex][i].objectEnumerator) {
+            if(connectionAttributes.isInitialNode) [set addObject:connectionAttributes.adjacentNode];
+        }
+    }
+
+    return [NSSet setWithSet:set];
+}
+
+- (NSSet *)setOfNodesAdjacentToNode:(id)node {
+    NSIndexSet *indexSet = [_nodeArray indexesOfObjectsWithOptions:NSEnumerationConcurrent passingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop) {
+        return ([obj isEqual:node]);
+    }];
+
+    if(indexSet.firstIndex == NSNotFound) return [NSSet set];
+
+    NSMutableSet *set = [NSMutableSet set];
+
+    for(NSUInteger i = 0; i < [_nodeArray count]; ++i) {
+        for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixArray[indexSet.firstIndex][i].objectEnumerator) {
+            if(connectionAttributes.isTerminalNode) [set addObject:connectionAttributes.adjacentNode];
+        }
+    }
+
+    return [NSSet setWithSet:set];
+}
+
 - (NSUInteger)undirectedConnectionCount {
 	return _undirectedConnectionCount;
 }
 
-- (NSUInteger)uniqueIncidenceCount {
-    return _uniqueIncidenceCount;
+- (NSUInteger)uniqueConnectionCount {
+    return _uniqueConnectionCount;
 }
 
 #pragma mark - Enumerating a Graph AA2LA Connection Store

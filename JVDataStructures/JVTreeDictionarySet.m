@@ -563,6 +563,16 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 	_completelyCompressPaths = flag;
 }
 
+- (NSSet *)setOfIsolatedKeys {
+	NSMutableSet *set = [NSMutableSet set];
+
+	for(id key in [self keyEnumerator]) {
+		if([self objectForKeyIsIsolated:key]) [set addObject:key];
+	}
+
+	return [NSSet setWithSet:set];
+}
+
 - (void)setPartiallyCompressPaths:(BOOL)flag {
 	_partiallyCompressPaths = flag;
 }
@@ -900,6 +910,16 @@ static NSString * const kJV_TREE_SET_KVO_DICTIONARY_COUNT = @"count";
 		_averagePathLengthShouldUpdate = YES;
 		_longestPathLengthShouldUpdate = YES;
 	}
+}
+
+#pragma mark - Custom Keyed Subscripting
+
+- (id)objectForKeyedSubscript:(id)key {
+	return _mainDictionary[key];
+}
+
+- (void)setObject:(id)obj forKeyedSubscript:(id)key {
+	_mainDictionary[key] = obj;
 }
 
 @end

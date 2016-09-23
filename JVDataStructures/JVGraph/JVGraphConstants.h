@@ -14,3 +14,8 @@ typedef NS_OPTIONS(NSUInteger, JVGraphNodeOrientationOptions) {
     JVGraphNodeOrientationInitial = 3 << 0, // 0000 0011
     JVGraphNodeOrientationTerminal = 3 << 2, // 0000 1100
 };
+
+typedef NS_ENUM(NSUInteger, JVGraphTraversalOrder) {
+	JVGraphBreadthFirstTraversalOrder,
+	JVGraphDepthFirstTraversalOrder
+};
