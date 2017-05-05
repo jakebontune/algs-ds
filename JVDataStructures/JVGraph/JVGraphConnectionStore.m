@@ -219,7 +219,7 @@ static NSString * const kCLASS_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnect
 - (void)useRepresentationWithClassFromString:(NSString *)string {
     Class JVGraphChosenConnectionStore = NSClassFromString(string);
 
-    if([_store isKindOfClass:JVGraphChosenConnectionStore]) return;
+    if([_store isMemberOfClass:JVGraphChosenConnectionStore]) return;
 
     id<NSObject, JVGraphConnectionStoreProtocol> store = [[JVGraphChosenConnectionStore alloc] init];
     NSArray *adjacencyArray = [_store adjacencyEnumerator].allObjects;
