@@ -158,20 +158,32 @@ static NSString * const kCLASS_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnect
 	return [_store indegreeOfNode:node];
 }
 
-- (NSUInteger)nodeCount {
-	return [_store nodeCount];
+- (NSUInteger)nodesConnectedCount {
+	return [_store nodesConnectedCount];
 }
 
 - (NSUInteger)outdegreeOfNode:(id)node {
 	return [_store outdegreeOfNode:node];
 }
 
+- (NSSet *)setOfNeighborsOfNode:(id)node {
+    return [_store setOfNeighborsOfNode:node];
+}
+
+- (NSSet *)setOfNodesAdjacentFromNode:(id)node {
+    return [_store setOfNodesAdjacentFromNode:node];
+}
+
+- (NSSet *)setOfNodesAdjacentToNode:(id)node {
+    return [_store setOfNodesAdjacentToNode:node];
+}
+
 - (NSUInteger)undirectedConnectionCount {
 	return [_store undirectedConnectionCount];
 }
 
-- (NSUInteger)uniqueIncidenceCount {
-  return [_store uniqueIncidenceCount];
+- (NSUInteger)uniqueConnectionCount {
+    return [_store uniqueConnectionCount];
 }
 
 #pragma mark - Enumerating a Graph Connection Store
@@ -207,7 +219,7 @@ static NSString * const kCLASS_JVGraphD2LAConnectionStore = @"JVGraphD2LAConnect
 - (void)useRepresentationWithClassFromString:(NSString *)string {
     Class JVGraphChosenConnectionStore = NSClassFromString(string);
 
-    if([_store isKindOfClass:JVGraphChosenConnectionStore]) return;
+    if([_store isMemberOfClass:JVGraphChosenConnectionStore]) return;
 
     id<NSObject, JVGraphConnectionStoreProtocol> store = [[JVGraphChosenConnectionStore alloc] init];
     NSArray *adjacencyArray = [_store adjacencyEnumerator].allObjects;

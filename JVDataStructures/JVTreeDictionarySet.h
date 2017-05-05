@@ -63,14 +63,17 @@ NS_ASSUME_NONNULL_BEGIN
 	    	uprootSequence:(nullable NSArray<KeyType> *)uprootSequenceArray;
 @property(nonatomic, readonly) NSUInteger longestPathLength;
 - (NSEnumerator<ObjectType> *)objectEnumerator;
+- (ObjectType)objectForKeyedSubscript:(KeyType)key;
 - (BOOL)objectForKeyIsIsolated:(KeyType)key;
 - (BOOL)relationExistsBetweenObjectForKey:(KeyType)key1 andObjectForKey:(KeyType)key2;
 - (void)removeAllObjects;
-- (void)removeObjectForKey:(id)key preserveComponent:(BOOL)shouldPreserveComponent;
-- (void)removeObjectForKey:(id)key preserveWithSuccessor:(BOOL)shouldElectChild;
-- (void)removeObjectForKey:(id)key preserveWithPredecessor:(BOOL)shouldElectParent;
+- (void)removeObjectForKey:(KeyType)key preserveComponent:(BOOL)shouldPreserveComponent;
+- (void)removeObjectForKey:(KeyType)key preserveWithSuccessor:(BOOL)shouldElectChild;
+- (void)removeObjectForKey:(KeyType)key preserveWithPredecessor:(BOOL)shouldElectParent;
 - (void)removeObjectsForKeys:(NSArray<KeyType> *)keysArray;
 - (void)setObject:(ObjectType)anObject forKey:(KeyType <NSCopying>)key1 andJoinWithObjectForKey:(nullable KeyType)key2;
+- (void)setObject:(ObjectType)obj forKeyedSubscript:(KeyType <NSCopying>)key;
+- (NSSet *)setOfIsolatedKeys;
 
 @end
 

@@ -25,7 +25,7 @@
 	NSMutableDictionary<id <NSCopying>, NSMutableDictionary<id <NSCopying>, JVMutableSinglyLinkedList *> *> *_nodeMatrixDictionary;
 	NSMutableDictionary<id <NSCopying>, JVGraphDegreeAttributes *> *_degreeInfoDictionary;
 	NSUInteger _undirectedConnectionCount;
-	NSUInteger _uniqueIncidenceCount;
+	NSUInteger _uniqueConnectionCount;
 }
 
 #pragma mark - Initializing a Graph D2LA Connection Store
@@ -58,7 +58,7 @@
 	connectionAttributes = [JVGraphConnectionAttributes attributesWithAdjacentNode:node1 directed:directed initialNode:YES value:value];
 
 	if(![node1 isEqual:node2] && (adjacencyDictionary2 != nil) && (adjacencyDictionary1 != nil)) { // not a self loop and both are preexisting nodes
-		if(connectionList2.count == 0) ++_uniqueIncidenceCount;
+		if(connectionList2.count == 0) ++_uniqueConnectionCount;
 
 		[connectionList2 addObject:[connectionAttributes copy]];
 
@@ -76,7 +76,7 @@
 			[self incrementIndegreeOfNode:node1];
 		}
 	} else if([node1 isEqual:node2] && (adjacencyDictionary2 != nil)) { // self loop with preexisting node
-		if(connectionList2.count == 0) ++_uniqueIncidenceCount;
+		if(connectionList2.count == 0) ++_uniqueConnectionCount;
 
 		[connectionList2 addObject:connectionAttributes];
 
@@ -90,7 +90,7 @@
 		JVGraphDegreeAttributes *degreeAttributes = [JVGraphDegreeAttributes attributes];
 		adjacencyDictionary2 = [NSMutableDictionary dictionary];
 
-		++_uniqueIncidenceCount;
+		++_uniqueConnectionCount;
 
 		connectionList2 = [JVMutableSinglyLinkedList list];
 
@@ -184,11 +184,11 @@
 			_degreeInfoDictionary[node1] = degreeAttributes;
 		}
 
-		++_uniqueIncidenceCount;
+		++_uniqueConnectionCount;
 	} else { // new unique entries
 		JVGraphDegreeAttributes *degreeAttributes2 = [JVGraphDegreeAttributes attributes], *degreeAttributes1 = [JVGraphDegreeAttributes attributes];
 
-		++_uniqueIncidenceCount;
+		++_uniqueConnectionCount;
 
 		adjacencyDictionary2 = [NSMutableDictionary dictionary];
 		adjacencyDictionary1 = [NSMutableDictionary dictionary];
@@ -242,7 +242,7 @@
 		// If there was ever a connection in that grid location, we are
 		// removing a unique incidence as we know all connections in the list
 		// have to do soley with the two nodes involved.
-		if(connectionList.count != 0) --_uniqueIncidenceCount;
+		if(connectionList.count != 0) --_uniqueConnectionCount;
 
 		for(JVGraphConnectionAttributes *connectionAttributes in connectionList.objectEnumerator) {
 			if(connectionAttributes.isDirected) {
@@ -290,7 +290,7 @@
     				--_undirectedConnectionCount;
     			}
 
-    			if(connectionList2.count == 0) --_uniqueIncidenceCount;
+    			if(connectionList2.count == 0) --_uniqueConnectionCount;
     			break;
     		}
     	}
@@ -316,7 +316,7 @@
     				--_undirectedConnectionCount;
     			}
 
-    			if(connectionList2.count == 0) --_uniqueIncidenceCount;
+    			if(connectionList2.count == 0) --_uniqueConnectionCount;
     		}
     	}
     } else {
@@ -377,7 +377,7 @@
 	return degreeAttributes.indegree;
 }
 
-- (NSUInteger)nodeCount {
+- (NSUInteger)nodesConnectedCount {
 	return [_nodeMatrixDictionary count];
 }
 
@@ -387,12 +387,60 @@
 	return degreeAttributes.outdegree;
 }
 
+- (NSSet *)setOfNeighborsOfNode:(id)node {
+    NSMutableDictionary *adjacencyDictionary = _nodeMatrixDictionary[node];
+
+    if(adjacencyDictionary == nil) return [NSSet set];
+
+    NSMutableSet *set = [NSMutableSet set];
+
+    for(id keyNode in adjacencyDictionary) {
+        for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixDictionary[node][keyNode].objectEnumerator) {
+            [set addObject:connectionAttributes.adjacentNode];
+        }
+    }
+
+    return [NSSet setWithSet:set];
+}
+
+- (NSSet *)setOfNodesAdjacentFromNode:(id)node {
+    NSMutableDictionary *adjacencyDictionary = _nodeMatrixDictionary[node];
+
+    if(adjacencyDictionary == nil) return [NSSet set];
+
+    NSMutableSet *set = [NSMutableSet set];
+
+    for(id keyNode in adjacencyDictionary) {
+        for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixDictionary[node][keyNode].objectEnumerator) {
+        	if(connectionAttributes.isInitialNode) [set addObject:connectionAttributes.adjacentNode];
+        }
+    }
+
+    return [NSSet setWithSet:set];
+}
+
+- (NSSet *)setOfNodesAdjacentToNode:(id)node {
+    NSMutableDictionary *adjacencyDictionary = _nodeMatrixDictionary[node];
+
+    if(adjacencyDictionary == nil) return [NSSet set];
+
+    NSMutableSet *set = [NSMutableSet set];
+
+    for(id keyNode in adjacencyDictionary) {
+        for(JVGraphConnectionAttributes *connectionAttributes in _nodeMatrixDictionary[node][keyNode].objectEnumerator) {
+        	if(connectionAttributes.isTerminalNode) [set addObject:connectionAttributes.adjacentNode];
+        }
+    }
+
+    return [NSSet setWithSet:set];
+}
+
 - (NSUInteger)undirectedConnectionCount {
 	return _undirectedConnectionCount;
 }
 
-- (NSUInteger)uniqueIncidenceCount {
-	return _uniqueIncidenceCount;
+- (NSUInteger)uniqueConnectionCount {
+	return _uniqueConnectionCount;
 }
 
 #pragma mark - Enumerating a Graph D2LA Connection Store

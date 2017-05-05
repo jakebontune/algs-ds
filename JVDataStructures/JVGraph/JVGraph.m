@@ -5,28 +5,15 @@
 #import "JVGraph.h"
 #import "../JVMutableSinglyLinkedList.h"
 #import "../JVTreeDictionarySet.h"
-#import "JVGraphConnectionStoreProtocol.h"
-#import "JVGraphConstants.h"
-
-// single node dictionary keys
-static NSUInteger const kJV_GRAPH_NODE_INFO_DICTIONARY_CAPACITY = 3;
-static NSString * const kJV_GRAPH_NODE_KEY_OBJECT = @"OBJECT";
-static NSString * const kJV_GRAPH_NODE_KEY_INDEGREE = @"INDEGREE";
-static NSString * const kJV_GRAPH_NODE_KEY_OUTDEGREE = @"OUTDEGREE";
-
-// adjacent node dictionary keys
-static NSUInteger const kJV_GRAPH_ADJACENT_NODE_DICTIONARY_CAPACITY = 4;
-static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE = @"ADJACENT_NODE";
-static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION = @"CONNECTION_ORIENTATION";
-static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION = @"VERTEX_ORIENTATION";
-static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE = @"CONNECTION_VALUE";
+#import "JVGraphConnectionStore.h"
+#import "../JVQueue.h"
+#import "../JVStack.h"
+#import "../JVBlockEnumerator.h"
 
 
 @implementation JVGraph {
-    NSMutableDictionary<id <NSCopying>, NSMutableDictionary *> *_nodeInfoDictionary;
-    NSMutableDictionary<id <NSCopying>, JVMutableSinglyLinkedList<NSMutableDictionary *> *> *_adjacencyDictionary;
-    NSUInteger _directedConnectionsCount;
-    NSUInteger _undirectedConnectionsCount;
+    JVGraphConnectionStore *_connectionStore;
+    JVTreeDictionarySet *_treeDictionarySet;
 }
 
 #pragma mark - Creating a Graph
@@ -47,8 +34,8 @@ static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE = @"CONNECT
 
 - (instancetype)init {
     if(self = [super init]) {
-        _nodeInfoDictionary = [[NSMutableDictionary alloc] init];
-        _adjacencyDictionary = [[NSMutableDictionary alloc] init];
+        _connectionStore = [JVGraphConnectionStore store];
+        _treeDictionarySet = [JVTreeDictionarySet treeDictionarySet];
     }
 
     return self;
@@ -57,11 +44,7 @@ static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE = @"CONNECT
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
     if(self = [self init]) {
         [dictionary enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-            NSMutableDictionary *singleNodeDictionary = [NSMutableDictionary dictionaryWithCapacity:kJV_GRAPH_NODE_INFO_DICTIONARY_CAPACITY];
-            singleNodeDictionary[kJV_GRAPH_NODE_KEY_OBJECT] = obj;
-            singleNodeDictionary[kJV_GRAPH_NODE_KEY_INDEGREE] = @(0);
-            singleNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(0);
-            [_nodeInfoDictionary setObject:singleNodeDictionary forKey:key];
+            _treeDictionarySet[key] = obj;
         }];
     }
 
@@ -70,197 +53,228 @@ static NSString * const kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE = @"CONNECT
 
 - (instancetype)initWithObject:(id)anObject forKey:(id)key {
     if(self = [self init]) {
-        NSMutableDictionary *singleNodeDictionary = [NSMutableDictionary dictionaryWithCapacity:kJV_GRAPH_NODE_INFO_DICTIONARY_CAPACITY];
-        singleNodeDictionary[kJV_GRAPH_NODE_KEY_OBJECT] = anObject;
-        singleNodeDictionary[kJV_GRAPH_NODE_KEY_INDEGREE] = @(0);
-        singleNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(0);
-        [_nodeInfoDictionary setObject:singleNodeDictionary forKey:key];
+        _treeDictionarySet[key] = anObject;
     }
 
     return self;
 }
 
-#pragma mark - Setting Objects
+#pragma mark - Adding Objects
 
 - (void)setObject:(id)anObject forKey:(id)key {
-    NSMutableDictionary *singleNodeDictionary = [_nodeInfoDictionary objectForKey:key];
-    if(singleNodeDictionary == nil) {
-        singleNodeDictionary = [NSMutableDictionary dictionaryWithCapacity:kJV_GRAPH_NODE_INFO_DICTIONARY_CAPACITY];
-        singleNodeDictionary[kJV_GRAPH_NODE_KEY_INDEGREE] = @(0);
-        singleNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(0);
-    }
-
-    singleNodeDictionary[kJV_GRAPH_NODE_KEY_OBJECT] = anObject;
+    _treeDictionarySet[key] = anObject;
 }
 
 #pragma mark - Removing Objects
 
-- (void)removeObject:(id)anObject forKey:(id)key {
-    JVMutableSinglyLinkedList *singleNodeAdjacencyList = [_adjacencyDictionary objectForKey:key];
-    if(singleNodeAdjacencyList == nil) return;
-
-    NSEnumerator *enumerator = [singleNodeAdjacencyList objectEnumerator];
-    NSMutableDictionary *adjacentNodeDictionary;
-    JVMutableSinglyLinkedList *adjacentNodeList;
-    id adjacentNodeKey;
-    NSMutableDictionary *adjacentNodeInfoDictionary;
-
-    while((adjacentNodeDictionary = [enumerator nextObject]) != nil) {
-        adjacentNodeKey = adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE];
-        adjacentNodeList = [_adjacencyDictionary objectForKey:adjacentNodeKey];
-        for(NSMutableDictionary *tempDictionary in [adjacentNodeList.objectEnumerator allObjects]) {
-            if([tempDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] isEqual:key]) {
-                [adjacentNodeList removeObject:tempDictionary];
-                adjacentNodeInfoDictionary = [_nodeInfoDictionary objectForKey:adjacentNodeKey];
-                if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphNodeOrientationInitial) {
-                    adjacentNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue - 1);
-
-                } else {
-                    adjacentNodeDictionary[kJV_GRAPH_NODE_KEY_INDEGREE] = @(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_NODE_KEY_INDEGREE]).integerValue - 1);
-                }
-
-                if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION]).integerValue == JVGraphConnectionOrientationDirected) {
-                    --_directedConnectionsCount;
-                } else {
-                    --_undirectedConnectionsCount;
-                }
-
-                break;
-            }
-        }
-    }
-
-    [_nodeInfoDictionary removeObjectForKey:key];
-    [_adjacencyDictionary removeObjectForKey:key];
-}
-
-#pragma mark - Querying a Graph
-
-- (NSUInteger)connectionsCount {
-    return (_directedConnectionsCount + _undirectedConnectionsCount);
-}
-
-- (NSUInteger)directedConnectionsCount {
-    return _directedConnectionsCount;
-}
-
-- (NSUInteger)objectsCount {
-    return [_nodeInfoDictionary count];
-}
-
-- (NSUInteger)undirectedConnectionsCount {
-    return _undirectedConnectionsCount;
+- (void)removeObjectForKey:(id)key {
+    [_treeDictionarySet removeObjectForKey:key];
+    [_connectionStore removeNode:key];
 }
 
 #pragma mark - Establishing Connections
 
 - (void)connectObjectWithKey:(id)fromKey toObjectWithKey:(id)toKey {
-    [self connectObjectWithKey:fromKey toObjectWithKey:toKey value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE) directed:NO];
+    [self connectObjectWithKey:fromKey toObjectWithKey:toKey directed:NO value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE)];
 }
 
 - (void)connectObjectWithKey:(id)fromKey toObjectWithKey:(id)toKey value:(NSValue *)value {
-    [self connectObjectWithKey:fromKey toObjectWithKey:toKey value:value directed:NO];
+    [self connectObjectWithKey:fromKey toObjectWithKey:toKey directed:NO value:value];
 }
 - (void)connectObjectWithKey:(id)fromKey toObjectWithKey:(id)toKey directed:(BOOL)directed {
-    [self connectObjectWithKey:fromKey toObjectWithKey:toKey value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE) directed:NO];
+    [self connectObjectWithKey:fromKey toObjectWithKey:toKey directed:NO value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE)];
 }
 
-- (void)connectObjectWithKey:(id)fromKey toObjectWithKey:(id)toKey value:(NSValue *)value directed:(BOOL)directed {
-    NSMutableDictionary *fromNodeInfo = _nodeInfoDictionary[fromKey];
-    NSMutableDictionary *toNodeInfo = _nodeInfoDictionary[toKey];
-    if((fromNodeInfo == nil) || (toNodeInfo == nil)) /* give warning */ return;
-
-    JVMutableSinglyLinkedList *adjacencyList = _adjacencyDictionary[fromKey];
-    NSMutableDictionary *adjacentNodeDictionary;
-    JVGraphConnectionOrientationOptions connectionOrientation = directed ? JVGraphConnectionOrientationDirected : JVGraphConnectionOrientationUndirected;
-    
-    if(adjacencyList == nil) {
-        adjacencyList = [JVMutableSinglyLinkedList list];
-        _adjacencyDictionary[fromKey] = adjacencyList;
-    }
-
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] = toKey;
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] = value;
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION] = @(JVGraphNodeOrientationInitial);
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION] = @(connectionOrientation);
-    [adjacencyList addObject:[adjacentNodeDictionary copy]];
-
-    adjacencyList = _adjacencyDictionary[toKey];
-    if(adjacencyList == nil) {
-        adjacencyList = [JVMutableSinglyLinkedList list];
-        _adjacencyDictionary[toKey] = adjacencyList;
-    }
-
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] = fromKey;
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] = value;
-    adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION] = @(JVGraphNodeOrientationTerminal);
-    [adjacencyList addObject:adjacentNodeDictionary];
-
-    fromNodeInfo[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)fromNodeInfo[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue + 1);
-    toNodeInfo[kJV_GRAPH_NODE_KEY_INDEGREE] = @(((NSNumber *)toNodeInfo[kJV_GRAPH_NODE_KEY_INDEGREE]).integerValue + 1);
-    
-    directed ? ++_directedConnectionsCount : ++_undirectedConnectionsCount;
+- (void)connectObjectWithKey:(id)fromKey toObjectWithKey:(id)toKey directed:(BOOL)directed value:(NSValue *)value {
+    if((_treeDictionarySet[fromKey] == nil) || (_treeDictionarySet[toKey] == nil)) return;
+    [_treeDictionarySet joinObjectForKey:fromKey andObjectForKey:toKey];
+    [_connectionStore setNode:toKey adjacentToNode:fromKey directed:directed value:value];
 }
 
 #pragma mark - Breaking Connections
 
 - (void)disconnectObjectWithKey:(id)key1 fromObjectWithKey:(id)key2 {
-    [self disconnectObjectWithKey:key1 fromObjectWithKey:key2 value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE) directed:NO];
+    [self disconnectObjectWithKey:key1 fromObjectWithKey:key2 directed:NO value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE)];
 }
 
 - (void)disconnectObjectWithKey:(id)key1 fromObjectWithKey:(id)key2 value:(NSValue *)value {
-    [self disconnectObjectWithKey:key1 fromObjectWithKey:key2 value:value directed:NO];
+    [self disconnectObjectWithKey:key1 fromObjectWithKey:key2 directed:NO value:value];
 }
 
 - (void)disconnectObjectWithKey:(id)key1 fromObjectWithKey:(id)key2 directed:(BOOL)directed {
-    [self disconnectObjectWithKey:key1 fromObjectWithKey:key2 value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE) directed:directed];
+    [self disconnectObjectWithKey:key1 fromObjectWithKey:key2 directed:directed value:@(kJV_GRAPH_DEFAULT_CONNECTION_VALUE)];
 }
 
-- (void)disconnectObjectWithKey:(id)key1 fromObjectWithKey:(id)key2 value:(NSValue *)value directed:(BOOL)directed {
-    NSMutableDictionary *nodeInfoA = _nodeInfoDictionary[key1];
-    NSMutableDictionary *nodeInfoB = _nodeInfoDictionary[key2];
-    if((nodeInfoA == nil) || (nodeInfoB == nil)) /* give warning */ return;
-    JVGraphConnectionOrientationOptions connectionOrientation = directed ? JVGraphConnectionOrientationDirected : JVGraphConnectionOrientationUndirected;
-    JVMutableSinglyLinkedList *adjacencyListA = _adjacencyDictionary[key1];
-    JVMutableSinglyLinkedList *adjacencyListB = _adjacencyDictionary[key2];
-    if((adjacencyListA == nil) || (adjacencyListB == nil)) /* give warning */ return;
-    BOOL foundConnection = NO;
-    for(NSMutableDictionary *adjacentNodeDictionary in [adjacencyListA.objectEnumerator allObjects]) {
-        if(([adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] isEqual:key2])
-            && ([adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] isEqualToValue:value])
-            && (((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION]).integerValue == connectionOrientation)) {
-            [adjacencyListA removeObject:adjacentNodeDictionary];
-            if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphNodeOrientationInitial) {
-                nodeInfoB[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)nodeInfoB[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue - 1);
-            } else {
-                nodeInfoB[kJV_GRAPH_NODE_KEY_INDEGREE] = @(((NSNumber *)nodeInfoB[kJV_GRAPH_NODE_KEY_INDEGREE]).integerValue - 1);
-            }
+- (void)disconnectObjectWithKey:(id)key1 fromObjectWithKey:(id)key2 directed:(BOOL)directed value:(NSValue *)value {
+    if((_treeDictionarySet[key1] == nil) || (_treeDictionarySet[key2] == nil)) return;
+    [_treeDictionarySet disjoinObjectForKey:key1 andObjectForKey:key2];
+    [_connectionStore removeNode:key1 adjacentToNode:key2 directed:directed value:value];
+}
 
-            foundConnection = YES;
-            break;
+#pragma mark - Querying a Graph
+
+- (BOOL)isConnected {
+    return (_treeDictionarySet.componentCount <= 1);
+}
+
+- (NSUInteger)connectionCount {
+    return _connectionStore.connectionCount;
+}
+
+- (BOOL)connectionExistsFromObjectForKey:(id)fromKey toObjectWithKey:(id)toKey directed:(BOOL)directed value:(NSValue *)value {
+    return [_connectionStore connectionExistsFromNode:fromKey toNode:toKey directed:directed value:value];
+}
+
+- (NSUInteger)count {
+    return [_treeDictionarySet count];
+}
+
+- (NSUInteger)degreeOfObjectForKey:(id)key {
+    return [_connectionStore degreeOfNode:key];
+}
+
+- (NSUInteger)directedConnectionCount {
+    return _connectionStore.directedConnectionCount;
+}
+
+- (BOOL)hasEulerianPath {
+    if(_treeDictionarySet.componentCount == 0) return NO;
+    NSUInteger numberOfOddVertices;
+
+    for(id node in _connectionStore.nodeEnumerator) {
+        if(([_connectionStore indegreeOfNode:node] + [_connectionStore outdegreeOfNode:node]) % 2 != 0) {
+            ++numberOfOddVertices;
+            if(numberOfOddVertices > 2) return NO;
         }
     }
 
-    if(foundConnection == NO) /* give error */ return;
+    if(numberOfOddVertices == 1) return NO;
 
-    for(NSMutableDictionary *adjacentNodeDictionary in [adjacencyListB.objectEnumerator allObjects]) {
-        if([adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_ADJACENT_NODE] isEqual:key1]
-            && ([adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_VALUE] isEqualToValue:value])
-            && (((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_CONNECTION_ORIENTATION]).integerValue == connectionOrientation)) {
-            [adjacencyListB removeObject:adjacentNodeDictionary];
-            if(((NSNumber *)adjacentNodeDictionary[kJV_GRAPH_ADJACENT_NODE_KEY_VERTEX_ORIENTATION]).integerValue == JVGraphNodeOrientationInitial) {
-                nodeInfoA[kJV_GRAPH_NODE_KEY_OUTDEGREE] = @(((NSNumber *)nodeInfoA[kJV_GRAPH_NODE_KEY_OUTDEGREE]).integerValue - 1);
-            } else {
-                nodeInfoA[kJV_GRAPH_NODE_KEY_INDEGREE] = @(((NSNumber *)nodeInfoA[kJV_GRAPH_NODE_KEY_INDEGREE]).integerValue - 1);
-            }
+    return YES;
+}
 
-            break;
+- (BOOL)hasEulerianCycle {
+    if((_treeDictionarySet.componentCount == 0) || (_treeDictionarySet.componentCount > 1)) return NO;
+
+    for(id node in _connectionStore.nodeEnumerator) {
+        if(([_connectionStore indegreeOfNode:node] + [_connectionStore outdegreeOfNode:node]) % 2 != 0) {
+            return NO;
         }
     }
 
-    directed ? --_directedConnectionsCount : --_undirectedConnectionsCount;
+    return YES;
 }
 
+- (NSUInteger)indegreeOfObjectForKey:(id)key {
+    return [_connectionStore indegreeOfNode:key];
+}
+
+- (NSUInteger)nodesConnectedCount {
+    return [_connectionStore nodesConnectedCount];
+}
+
+- (id)objectForKey:(id)key {
+    return _treeDictionarySet[key];
+}
+
+- (BOOL)objectForKeyIsIsolated:(id)key {
+    return [self objectForKeyIsIsolated:key];
+}
+
+- (NSUInteger)outdegreeOfObjectForKey:(id)key {
+    return [_connectionStore outdegreeOfNode:key];
+}
+
+- (BOOL)pathExistsBetweenObjectForKey:(id)key1 andObjectForKey:(id)key2 {
+    return [_treeDictionarySet relationExistsBetweenObjectForKey:key1 andObjectForKey:key2];
+}
+
+- (NSSet *)setOfKeysAdjacentFromObjectForKey:(id)key {
+    return [_connectionStore setOfNodesAdjacentFromNode:key];
+}
+
+- (NSSet *)setOfKeysAdjacentToObjectForKey:(id)key {
+    return [_connectionStore setOfNodesAdjacentToNode:key];
+}
+
+- (NSSet *)setOfIsolatedKeys {
+    return [_treeDictionarySet setOfIsolatedKeys];
+}
+
+- (NSSet *)setOfNeighborsOfObjectForKey:(id)key {
+    return [_connectionStore setOfNeighborsOfNode:key];
+}
+
+- (NSUInteger)undirectedConnectionCount {
+    return _connectionStore.undirectedConnectionCount;
+}
+
+#pragma mark - Enumerating a Graph
+
+- (void)enumerateKeysAndObjectsUsingTraversalOrder:(JVGraphTraversalOrder)order block:(void(^)(id key, id obj, BOOL isIsolatedObject, BOOL *stop))block {
+
+}
+
+- (NSEnumerator *)keyEnumerator {
+    return _treeDictionarySet.keyEnumerator;
+}
+
+- (NSEnumerator *)keyEnumeratorUsingTraversalOrder:(JVGraphTraversalOrder)order startWithObjectForKey:(id)key {
+    if(order == JVGraphBreadthFirstTraversalOrder) {
+        return [self breadthFirstKeyEnumeratorStartingWithObjectForKey:key];
+    } else if(order == JVGraphDepthFirstTraversalOrder) {
+        return [self depthFirstKeyEnumeratorStartingWithObjectForKey:key];
+    } else {
+        return _treeDictionarySet.keyEnumerator;
+    }
+}
+
+- (NSEnumerator *)objectEnumerator {
+    return _treeDictionarySet.objectEnumerator;
+}
+
+#pragma mark - Private Methods
+
+- (NSEnumerator *)breadthFirstKeyEnumeratorStartingWithObjectForKey:(id)key {
+    JVBlockEnumerator *enumerator = [[JVBlockEnumerator alloc] init];
+    __block JVQueue *queue = [JVQueue queue];
+    __block NSMutableDictionary *markedDictionary = [NSMutableDictionary dictionary];
+    __block NSEnumerator *keyEnumerator = _treeDictionarySet.keyEnumerator;
+
+    if(_treeDictionarySet[key] == nil) return [[JVBlockEnumerator alloc] init];
+
+    enumerator.block = ^{
+        [queue enqueue:key];
+        return (id)nil;
+    };
+
+    return enumerator;
+}
+
+- (NSEnumerator *)depthFirstKeyEnumeratorStartingWithObjectForKey:(id)key {
+    JVBlockEnumerator *enumerator = [[JVBlockEnumerator alloc] init];
+    __block JVStack *stack = [JVStack stack];
+    __block NSMutableDictionary *markedDictionary = [NSMutableDictionary dictionary];
+    __block NSEnumerator *keyEnumerator = _treeDictionarySet.keyEnumerator;
+
+    if(_treeDictionarySet[key] == nil) return [[JVBlockEnumerator alloc] init];
+
+    enumerator.block = ^{
+        return (id)nil;
+    };
+
+    return enumerator;
+}
+
+#pragma mark - Custom Keyed Subscripting
+
+- (id)objectForKeyedSubscript:(id)key {
+    return _treeDictionarySet[key];
+}
+
+- (void)setObject:(id)obj forKeyedSubscript:(id)key {
+    _treeDictionarySet[key] = obj;
+}
 
 
 @end
